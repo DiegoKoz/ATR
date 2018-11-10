@@ -51,8 +51,6 @@ El _entorno_ más cómodo para utilizar el _lenguaje_ __R__ es el _programa_ __R
 - Más veloz:
 
 
-![fuente: https://github.com/matthieugomez/benchmark-stata-r/blob/master/output/1e7.png](stataR.png)
-
 
 
 # Lógica sintáctica.
