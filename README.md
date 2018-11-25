@@ -26,3 +26,8 @@
 ### Clase 5:
 
 #### R intermedo  + Rmarkdown + Shiny Apps
+
+- [Notebook R intermedio](Clase 5/Clase_5-R Intermedio.nb.html)
+- [Script R intermedio](Clase 5/Clase_5-R Intermedio.R)
+- [Rmarkdown R intermedio](Clase 5/Clase_5-R Intermedio.Rmd)
+- [Ejercicios](Clase 5/Ejercicios_Clase_5_R intermedio.R)
