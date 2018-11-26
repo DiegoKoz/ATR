@@ -93,7 +93,7 @@ Datos_gather
 
 list.files("Fuentes/")
 Individual_t117 <-
-  read.table("/Fuentes/usu_individual_t117.txt",
+  read.table("Fuentes/usu_individual_t117.txt",
     sep = ";",
     dec = ",",
     header = TRUE,
@@ -212,6 +212,46 @@ Cuadro_1.2a <- Cuadro_1.2a %>%
   select(Nom_Aglo,everything(.),-AGLOMERADO) #Eliminamos el código de los aglomerados
 
 Cuadro_1.2a
+
+####Trabajo con multiples bases de datos 
+Individual_t416 <-
+  read.table("Fuentes/usu_individual_t416.txt",
+             sep = ";",
+             dec = ",",
+             header = TRUE,
+             fill = TRUE )
+
+##Vector de variables de interés para acotar la base
+Variables_interes <- c("ANO4","TRIMESTRE","ESTADO","PONDERA","INTENSI","PP03J")
+
+Basesita_t416 <- Individual_t416 %>% select(Variables_interes)
+Basesita_t117 <- Individual_t117 %>% select(Variables_interes)
+
+####bind_rows
+Union_Bases <- bind_rows(Basesita_t416,Basesita_t117)
+##alternativamente
+Union_Bases <- Basesita_t416 %>% 
+  bind_rows(Basesita_t117)
+
+###Tasas básicas en ambos trimestres 
+Tasas_dos_trimestres <- Union_Bases %>% 
+  group_by(ANO4,TRIMESTRE) %>% 
+  summarise(Poblacion         = sum(PONDERA),
+            Ocupados          = sum(PONDERA[ESTADO == 1]),
+            Desocupados       = sum(PONDERA[ESTADO == 2]),
+            PEA               = Ocupados + Desocupados,
+            Ocupados_demand   = sum(PONDERA[ESTADO == 1 & PP03J == 1]),
+            Suboc_demandante  = sum(PONDERA[ESTADO == 1 & INTENSI == 1 & PP03J == 1]),
+            Suboc_no_demand   = sum(PONDERA[ESTADO == 1 & INTENSI == 1 & PP03J %in% c(2, 9)]),
+            Subocupados       = Suboc_demandante + Suboc_no_demand,
+            'Tasa Actividad'                  = PEA/Poblacion,
+            'Tasa Empleo'                     = Ocupados/Poblacion,
+            'Tasa Desocupacion'               = Desocupados/PEA,
+            'Tasa ocupados demandantes'       = Ocupados_demand/PEA,
+            'Tasa Subocupación'               = Subocupados/PEA,
+            'Tasa Subocupación demandante'    = Suboc_demandante/PEA,
+            'Tasa Subocupación no demandante' = Suboc_no_demand/PEA) %>% 
+  select(1:2,11:ncol(.))
 
 
 ####Exportamos archivos####
