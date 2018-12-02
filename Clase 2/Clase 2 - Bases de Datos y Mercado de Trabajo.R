@@ -99,6 +99,13 @@ Individual_t117 <-
     header = TRUE,
     fill = TRUE )
 
+Individual_t416 <-
+  read.table("Fuentes/usu_individual_t416.txt",
+             sep = ";",
+             dec = ",",
+             header = TRUE,
+             fill = TRUE )
+
 library(openxlsx) 
 
 Aglom <- read.xlsx("Fuentes/Aglomerados EPH.xlsx")
@@ -116,147 +123,72 @@ Aglom <- read.xlsx("Fuentes/Aglomerados EPH.xlsx")
 
 # PONDERA: Ponderador 
 
-# INTENSI: 
-
-# 1 = Subocupado por insuficiencia horaria
-# 2 = Ocupado pleno
-# 3 = Sobreocupado
-# 4 = Ocupado que no trabajó en la semana
-# 9 = Ns./Nr.
-
-# PP03J:
-
-# Aparte de este/os trabajo/s,¿estuvo buscando algún
-# empleo/ocupación/ actividad?
-# 1 = Si
-# 2 = No
-# 9 = Ns./Nr.
-
-
-#### 1. Principales Indicadores del Mdo de Trabajo #### 
-Poblacion_ocupados <- Individual_t117 %>% 
-  summarise(Poblacion         = sum(PONDERA),
-            Ocupados          = sum(PONDERA[ESTADO == 1]))
-
-Poblacion_ocupados
-
-Empleo <- Individual_t117 %>% 
-  summarise(Poblacion         = sum(PONDERA),
-            Ocupados          = sum(PONDERA[ESTADO == 1]),
-            Tasa_Empleo    = Ocupados/Poblacion)
-
-Empleo
-
-Empleo %>% 
-  select(-(1:2))
-####Cuadro 1.1 Principales indicadores. Total 31 aglomerados urbanos
-
-Cuadro_1.1a <- Individual_t117 %>% 
-  summarise(Poblacion         = sum(PONDERA),
-            Ocupados          = sum(PONDERA[ESTADO == 1]),
-            Desocupados       = sum(PONDERA[ESTADO == 2]),
-            PEA               = Ocupados + Desocupados,
-            Ocupados_demand   = sum(PONDERA[ESTADO == 1 & PP03J ==1]),
-            Suboc_demandante  = sum(PONDERA[ESTADO == 1 & INTENSI ==1 & PP03J==1]),
-            Suboc_no_demand   = sum(PONDERA[ESTADO == 1 & INTENSI ==1 & PP03J %in% c(2,9)]),
-            Subocupados       = Suboc_demandante + Suboc_no_demand ,
-            # También podemos llamar a las variables entre comillas, incluyendo nombres compuestos
-            # A su vez, podemos utilizar la variable recién creada en la definción de otra varible
-            'Tasa Actividad'                  = PEA/Poblacion,
-            'Tasa Empleo'                     = Ocupados/Poblacion,
-            'Tasa Desocupacion'               = Desocupados/PEA,
-            'Tasa ocupados demandantes'       = Ocupados_demand/PEA,
-            'Tasa Subocupación'               = Subocupados/PEA,
-            'Tasa Subocupación demandante'    = Suboc_demandante/PEA,
-            'Tasa Subocupación no demandante' = Suboc_no_demand/PEA) 
-Cuadro_1.1a 
-#### Me quedo unicametne con las columnas que contienen las tasas
-Cuadro_1.1a <- Cuadro_1.1a %>% 
-  select(-c(1:8))
-
-Cuadro_1.1a
-####Doy Vuelta la Tabla para tener en una sola columna las tasas 
-Cuadro_1.1a <- Cuadro_1.1a %>% 
-  gather(Tasas, Valor, 1:ncol(.))
-
-Cuadro_1.1a
-####Aplico un "truco" para agregarle el valor en %
-Cuadro_1.1a <- Cuadro_1.1a %>% 
-  mutate(Valor = sprintf("%1.1f%%", 100*Valor))
-
-Cuadro_1.1a
-
-########### Cuadro 1.2
-Cuadro_1.2a <- Individual_t117 %>% 
-  group_by(AGLOMERADO) %>% 
-  summarise(Poblacion         = sum(PONDERA),
-            Ocupados          = sum(PONDERA[ESTADO == 1]),
-            Desocupados       = sum(PONDERA[ESTADO == 2]),
-            PEA               = Ocupados + Desocupados,
-            Ocupados_demand   = sum(PONDERA[ESTADO == 1 & PP03J == 1]),
-            Suboc_demandante  = sum(PONDERA[ESTADO == 1 & INTENSI == 1 & PP03J == 1]),
-            Suboc_no_demand   = sum(PONDERA[ESTADO == 1 & INTENSI == 1 & PP03J %in% c(2, 9)]),
-            Subocupados       = Suboc_demandante + Suboc_no_demand,
-            'Tasa Actividad'                  = PEA/Poblacion,
-            'Tasa Empleo'                     = Ocupados/Poblacion,
-            'Tasa Desocupacion'               = Desocupados/PEA,
-            'Tasa ocupados demandantes'       = Ocupados_demand/PEA,
-            'Tasa Subocupación'               = Subocupados/PEA,
-            'Tasa Subocupación demandante'    = Suboc_demandante/PEA,
-            'Tasa Subocupación no demandante' = Suboc_no_demand/PEA)
-
-####Aplico de forma encadenada los procedimientos para emprolijar los resultados
-Cuadro_1.2a <- Cuadro_1.2a %>% 
-  select(-c(2:9)) %>%    # Eliminamos las variables de nivel
-  left_join(.,Aglom) %>% # Agregamos el nombre de los aglomerados, que teniamos en otro DF
-  select(Nom_Aglo,everything(.),-AGLOMERADO) #Eliminamos el código de los aglomerados
-
-Cuadro_1.2a
-
-####Trabajo con multiples bases de datos 
-Individual_t416 <-
-  read.table("Fuentes/usu_individual_t416.txt",
-             sep = ";",
-             dec = ",",
-             header = TRUE,
-             fill = TRUE )
-
-##Vector de variables de interés para acotar la base
-Variables_interes <- c("ANO4","TRIMESTRE","ESTADO","PONDERA","INTENSI","PP03J")
+###Defino variables de interes y acoto la base de datos a las mismas
+Variables_interes <- c("ANO4","TRIMESTRE","ESTADO","PONDERA","REGION","AGLOMERADO")
 
 Basesita_t416 <- Individual_t416 %>% select(Variables_interes)
 Basesita_t117 <- Individual_t117 %>% select(Variables_interes)
 
-####bind_rows
+#Uno las bases de ambos trimestres
 Union_Bases <- bind_rows(Basesita_t416,Basesita_t117)
 ##alternativamente
 Union_Bases <- Basesita_t416 %>% 
   bind_rows(Basesita_t117)
 
-###Tasas básicas en ambos trimestres 
+###Calculo los numeradores y denominadores de los cocientes
+Poblacion_ocupados <- Union_Bases %>% 
+  group_by(ANO4,TRIMESTRE) %>% 
+  summarise(Poblacion         = sum(PONDERA),
+            Ocupados          = sum(PONDERA[ESTADO == 1]))
+
+#Calculo la tasa de empleo, dentro del mismo summarise
+Empleo <- Union_Bases %>% 
+  group_by(ANO4,TRIMESTRE) %>% 
+  summarise(Poblacion         = sum(PONDERA),
+            Ocupados          = sum(PONDERA[ESTADO == 1]),
+            Tasa_Empleo    = Ocupados/Poblacion)
+
+#Desecho las variables de nivel
+Empleo %>% 
+  select(-(3:4))
+
+
 Tasas_dos_trimestres <- Union_Bases %>% 
   group_by(ANO4,TRIMESTRE) %>% 
   summarise(Poblacion         = sum(PONDERA),
             Ocupados          = sum(PONDERA[ESTADO == 1]),
             Desocupados       = sum(PONDERA[ESTADO == 2]),
             PEA               = Ocupados + Desocupados,
-            Ocupados_demand   = sum(PONDERA[ESTADO == 1 & PP03J == 1]),
-            Suboc_demandante  = sum(PONDERA[ESTADO == 1 & INTENSI == 1 & PP03J == 1]),
-            Suboc_no_demand   = sum(PONDERA[ESTADO == 1 & INTENSI == 1 & PP03J %in% c(2, 9)]),
-            Subocupados       = Suboc_demandante + Suboc_no_demand,
             'Tasa Actividad'                  = PEA/Poblacion,
             'Tasa Empleo'                     = Ocupados/Poblacion,
-            'Tasa Desocupacion'               = Desocupados/PEA,
-            'Tasa ocupados demandantes'       = Ocupados_demand/PEA,
-            'Tasa Subocupación'               = Subocupados/PEA,
-            'Tasa Subocupación demandante'    = Suboc_demandante/PEA,
-            'Tasa Subocupación no demandante' = Suboc_no_demand/PEA) %>% 
-  select(1:2,11:ncol(.))
+            'Tasa Desocupacion'               = Desocupados/PEA) %>% 
+  select(1:2,7:ncol(.))
+
+#Calculo las tasas desagregadas por aglomerado
+Tasas_dos_trimestres_AGLOM <- Union_Bases %>% 
+  group_by(ANO4,TRIMESTRE,AGLOMERADO) %>% 
+  summarise(Poblacion         = sum(PONDERA),
+            Ocupados          = sum(PONDERA[ESTADO == 1]),
+            Desocupados       = sum(PONDERA[ESTADO == 2]),
+            PEA               = Ocupados + Desocupados,
+            'Tasa Actividad'                  = PEA/Poblacion,
+            'Tasa Empleo'                     = Ocupados/Poblacion,
+            'Tasa Desocupacion'               = Desocupados/PEA) 
+
+#Incorporo el nombre los aglomerados y emprolijo los resultados
+
+Tasas_dos_trimestres_AGLOM_nombre <- Tasas_dos_trimestres_AGLOM %>% 
+  select(-c(4:7)) %>%    # Eliminamos las variables de nivel
+  left_join(.,Aglom) %>% # Agregamos el nombre de los aglomerados, que teniamos en otro DF
+  select(Nom_Aglo,everything(.),-AGLOMERADO) #Eliminamos el código de los aglomerados
+
+Lista_a_exportar <- list("Resultado1" = Tasas_dos_trimestres,
+                         "Resultado2" = Tasas_dos_trimestres_AGLOM_nombre)
+
+write.xlsx(Lista_a_exportar,"Resultados/Informe Mercado Trabajo.xlsx")
 
 
-####Exportamos archivos####
-Lista_a_exportar <- list("Cuadro 1.1" = Cuadro_1.1a,
-                         "Cuadro 1.2" = Cuadro_1.2a)
+#### Exportar resultados a  Excel
 
-write.xlsx(Lista_a_exportar, "Resultados/Informe Mercado de Trabajo.xlsx")
+
 
