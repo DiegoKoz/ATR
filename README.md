@@ -12,11 +12,13 @@
 
 #### Tidyverse. (limpieza y organización de datos)
 
-### Clase 3:
 - [Notebook](Clase 2/Clase_2_tidyverse.nb.html)
 - [Script](Clase 2/Clase_2_tidyverse.R)
 
+### Clase 3:
+
 #### Gráficos y estadística descriptiva
+
 - [Notebook](Clase 3/Clase3_graficos.nb.html)
 - [Script](Clase 3/Clase3_graficos.R)
 - [Ejercicios](Clase 3/Ejercicios - Clase3_graficos.R)
