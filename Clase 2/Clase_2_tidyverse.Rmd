@@ -1,6 +1,6 @@
 ---
-title: "Utilización del lenguaje R para aplicación en la Encuesta Permanente de Hogares"
-subtitle: "Clase 2 - Tidyverse: Manipulacion de Bases de Datos"
+title: "Clase 2"
+subtitle: "Tidyverse: Manipulacion de Bases de Datos"
 date: "11/12/2018"
 output:
   html_notebook:
@@ -9,8 +9,6 @@ output:
   html_document:
     toc: yes
 ---
-*Las notas del presente curso fueron elaboradas originalmente por Diego Kozlowski y Guido Weksler. En las sucesivas modificaciones colaboraron: Natsumi Shokida y Matías Lioni*                      
-
 
 > Reiniciar R
 
