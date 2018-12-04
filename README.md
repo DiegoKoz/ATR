@@ -13,8 +13,8 @@
 #### Tidyverse. (limpieza y organización de datos)
 
 ### Clase 3:
-- [Notebook](Clase 2/Clase 2 - Bases de Datos y Mercado de Trabajo.nb.html)
-- [Script](Clase 2/Clase 2 - Bases de Datos y Mercado de Trabajo.R)
+- [Notebook](Clase 2/Clase_2_tidyverse.nb.html)
+- [Script](Clase 2/Clase_2_tidyverse.R)
 
 #### Gráficos y estadística descriptiva
 - [Notebook](Clase 3/Clase3_graficos.nb.html)
