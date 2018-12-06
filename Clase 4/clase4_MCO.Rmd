@@ -1,0 +1,156 @@
+---
+title: "Clase 4"
+author: "Barriola, Kozlowski y Weskler"
+date: "14/12/2018"
+output:
+  html_notebook: 
+    toc: true
+    toc_float: true
+---
+
+#### Carga de librerías
+```{r}
+library(tidyverse)
+library(GGally)
+```
+
+# Motivación y objetivo
+
+Nuestro objetivo va a ser crear un modelo estadístico sencillo que nos permita modelar la relación lineal entre dos variables: una será nuestra variable a explicar y la otra será nuestra variable explicativa. Para eso vamos a ver:
+
+1) El concepto de correlación, su estimación y los tests asociados
+2) Las diferencias entre la correlación y causalidad
+3) Modelo de Regresión Lineal Simple: breve introducción teorica, interpretación y evaluación.
+
+# Dataset
+
+Vamos a trabajar con el dataset **state.x77** que se encuentra en R. Como es una matriz, lo transformamos a un dataframe con `as.data.frame()`
+
+```{r}
+estados <- state.x77 %>% as.data.frame() %>% rename(life_exp = `Life Exp`, hs_grad=`HS Grad`)
+```
+
+Para conocer el dataset utilicemos `?state.x77` para abrir la ayuda de R y la funcion `glimpse()` para ver la estructura de nuestros datos.
+
+```{r}
+?state.x77
+glimpse(estados)
+```
+
+Tenemos 50 observaciones (los 50 estados de Estados Unidos) y 8 variables númericas:
+
+* population: población
+* income: ingreso per capita
+* illiteracy: porcentaje de la población que es analfabeta
+* Life Exp: esperanza de vida en años 
+* Murder: cantidad de homicidios cada 100.000 habitantes
+* HS Grad: porcentaje de la población que terminó la secundaria
+* Frost: promedio de días con temperatura mínima por debajo de los 0 grados
+* Area: area en millas cuadradas
+
+Veamos algunas estadisticas de resumen para conocer un poco más nuestras variables:
+
+```{r cars}
+summary(estados)
+```
+
+# Covarianza y correlacion
+
+## Covarianza
+
+### Definicion
+
+Es un estadistico que permite medir la variabilidad conjunta de 2 variables.
+
+Nos permite medir la asociacion lineal entre dos variables
+
+$q= \frac{1}{N-1} \sum\limits_{i=1}^N (x_i-\bar{x})(y_i-\bar{y})$
+
+* Cuando valores altos de **x** corresponden a valores altos de **y**, y valores bajos de **x** corresponden a valores bajos de **y** la COVARIANZA es positiva
+
+* Cuando valores altos de **x** corresponden a valores bajos de **y**, y valores bajos de **x** corresponden a valores altos de **y** la COVARIANZA es negativa
+
+* Cuando no ocurre ninguna de las dos cosas anteriores, la covarianza sera muy cercana a cero
+
+
+### Interpretacion grafica
+
+```{r}
+ggplot(estados, aes(x=Murder,y=life_exp)) + geom_point(size=2) +
+    geom_hline(yintercept = mean(states$life_exp), color='steelblue', linetype='dashed', size=1) +
+    geom_vline(xintercept = mean(states$Murder), color='steelblue', linetype='dashed', size=1) +
+  labs(title='Asociacion negativa')+
+  theme_bw() + scale_x_continuous(limits = c(0,16))
+```
+
+```{r}
+ggplot(estados, aes(x=Murder,y=Illiteracy)) + geom_point(size=2) +
+  geom_hline(yintercept = mean(states$Illiteracy),color='steelblue', linetype='dashed', size=1) +
+  geom_vline(xintercept = mean(states$Murder), color='steelblue', linetype='dashed', size=1) +
+  labs(title='Asociacion positiva')+
+  theme_bw() + scale_y_continuous(limits = c(0,3)) + scale_x_continuous(limits = c(0,16))
+```
+
+```{r}
+ggplot(estados, aes(x=Area,y=Illiteracy)) + geom_point(size=2) +
+  geom_hline(yintercept = mean(states$Illiteracy),color='steelblue', linetype='dashed', size=1) +
+  geom_vline(xintercept = mean(states$Area), color='steelblue', linetype='dashed', size=1) +
+  labs(title='Sin asociacion lineal')+
+  theme_bw() + scale_y_continuous(limits = c(-1,3)) + scale_x_continuous(limits = c(-400000,600000))
+```
+
+La covarianza tiene una CARACTERISTICA que puede ser un PROBLEMA importante: se ve afectada por la unidad de medida de las variables.
+
+Por ejemplo:
+
+```{r}
+# Covarianza entre area (medida en millas cuadradas) y analfabetismo
+cov_1 = cov(x = estados$Area, y=estados$Illiteracy)
+cov_1
+# 1 milla cuadrada = 2.59 kilometros cuadrados
+area_kilometros = estados$Area*2.59
+# Covarianza entre area (medida en kilometros cuadradas) y analfabetismo
+cov_2=cov(x = area_kilometros, y=estados$Illiteracy)
+cov_2
+```
+
+La covarianza entre el area y analfabetismo es distinta dependiendo como midamos el area. Si la medimos en millas cuadras la covarianza es 4018.3 y si la medimos en kilometros cuadrados es igual a 10407.5. 
+
+Como la covarianza se ve afectada por la unidad de medida de las variables puede ser muy dificil (o imposible) realizar una comparacion entre las covarianzas de distintas variables. Para eso podemos utilizar otra medida
+
+## Correlacion
+
+### Definicion
+
+Def
+
+Formula
+
+Caracteristicas
+
+Ejemplos
+
+Tests
+
+
+
+```{r, message=FALSE}
+
+ggpairs(estados) + theme_bw() 
+```
+
+# Correlacion vs causalidad
+
+Imagenes de spurious correlations
+
+Ejemplo de `estados` con Frost vs Murder
+
+# Modelo
+
+## Definicion
+
+## Modelo en R
+
+### Interpretacion
+
+### Evaluacion
