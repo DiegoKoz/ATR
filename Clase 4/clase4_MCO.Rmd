@@ -62,7 +62,9 @@ summary(estados)
 
 Es un estadistico que permite medir la variabilidad conjunta de 2 variables.
 
-Nos permite medir la asociacion lineal entre dos variables
+Nos permite medir la asociacion lineal entre dos variables.
+
+La formula de calculo es esta medida es:
 
 $q= \frac{1}{N-1} \sum\limits_{i=1}^N (x_i-\bar{x})(y_i-\bar{y})$
 
@@ -77,24 +79,24 @@ $q= \frac{1}{N-1} \sum\limits_{i=1}^N (x_i-\bar{x})(y_i-\bar{y})$
 
 ```{r}
 ggplot(estados, aes(x=Murder,y=life_exp)) + geom_point(size=2) +
-    geom_hline(yintercept = mean(states$life_exp), color='steelblue', linetype='dashed', size=1) +
-    geom_vline(xintercept = mean(states$Murder), color='steelblue', linetype='dashed', size=1) +
+    geom_hline(yintercept = mean(estados$life_exp), color='steelblue', linetype='dashed', size=1) +
+    geom_vline(xintercept = mean(estados$Murder), color='steelblue', linetype='dashed', size=1) +
   labs(title='Asociacion negativa')+
   theme_bw() + scale_x_continuous(limits = c(0,16))
 ```
 
 ```{r}
 ggplot(estados, aes(x=Murder,y=Illiteracy)) + geom_point(size=2) +
-  geom_hline(yintercept = mean(states$Illiteracy),color='steelblue', linetype='dashed', size=1) +
-  geom_vline(xintercept = mean(states$Murder), color='steelblue', linetype='dashed', size=1) +
+  geom_hline(yintercept = mean(estados$Illiteracy),color='steelblue', linetype='dashed', size=1) +
+  geom_vline(xintercept = mean(estados$Murder), color='steelblue', linetype='dashed', size=1) +
   labs(title='Asociacion positiva')+
   theme_bw() + scale_y_continuous(limits = c(0,3)) + scale_x_continuous(limits = c(0,16))
 ```
 
 ```{r}
 ggplot(estados, aes(x=Area,y=Illiteracy)) + geom_point(size=2) +
-  geom_hline(yintercept = mean(states$Illiteracy),color='steelblue', linetype='dashed', size=1) +
-  geom_vline(xintercept = mean(states$Area), color='steelblue', linetype='dashed', size=1) +
+  geom_hline(yintercept = mean(estados$Illiteracy),color='steelblue', linetype='dashed', size=1) +
+  geom_vline(xintercept = mean(estados$Area), color='steelblue', linetype='dashed', size=1) +
   labs(title='Sin asociacion lineal')+
   theme_bw() + scale_y_continuous(limits = c(-1,3)) + scale_x_continuous(limits = c(-400000,600000))
 ```
@@ -120,6 +122,8 @@ Como la covarianza se ve afectada por la unidad de medida de las variables puede
 
 ## Correlacion
 
+
+
 ### Definicion
 
 Def
@@ -141,9 +145,34 @@ ggpairs(estados) + theme_bw()
 
 # Correlacion vs causalidad
 
-Imagenes de spurious correlations
+La correlacion mide el grado de asociacion lineal entre dos variables.
 
-Ejemplo de `estados` con Frost vs Murder
+La CAUSALIDAD indica que una variable o variables (variables predictoras/exogenas/explicativas) sirven para explicar el comportamiento de otra variable (variable a predecir/endogena/ a explicar)
+
+Puede haber variables con una baja (o nula) correlacion, y sin embargo que exista otro tipo de relacion entre ellas. Como tambien pueden existir variables con una alta correlacion pero que no podamos explicar el vinculo entre ellas.
+
+Para este segundo caso, podemos clasificarlo en dos situaciones:
+
+1) **Correlacion espuria**: dos variables tienen una correlacion elevada por motivos puramente azarosos
+
+2) **Variables ocultas**: dos variables tienen una correlacion elevada porque hay informacion "escondida" en alguna de ellas (o en ambas)
+
+Veamos algunos ejemplos para aclarar la situacion
+
+![Fuente: http://www.tylervigen.com/spurious-correlations](espuria_1.png)     
+
+![Fuente: http://www.tylervigen.com/spurious-correlations](espuria_2.png)   
+
+Ejemplo de `estados` con Frost vs Illiteracy
+
+```{r}
+ggplot(estados, aes(x=Frost,y=Illiteracy)) + geom_point(size=2) +
+  geom_hline(yintercept = mean(estados$Illiteracy),color='steelblue', linetype='dashed', size=1) +
+  geom_vline(xintercept = mean(estados$Frost), color='steelblue', linetype='dashed', size=1) +
+  labs(title='Asociacion positiva')+
+  theme_bw() + scale_y_continuous(limits = c(-1,3)) + scale_x_continuous(limits = c(-10,200))
+```
+
 
 # Modelo
 
