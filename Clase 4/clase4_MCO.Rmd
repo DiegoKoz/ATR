@@ -103,6 +103,8 @@ ggplot(estados, aes(x=Area,y=Illiteracy)) + geom_point(size=2) +
 
 La covarianza tiene una CARACTERISTICA que puede ser un PROBLEMA importante: se ve afectada por la unidad de medida de las variables.
 
+La funcion `cov` permite calcular la covarianza entre dos variables.
+
 Por ejemplo:
 
 ```{r}
@@ -122,26 +124,120 @@ Como la covarianza se ve afectada por la unidad de medida de las variables puede
 
 ## Correlacion
 
-
-
 ### Definicion
 
-Def
+Al igual que la covarianza, la correlacion nos permite medir la asociacion lineal entre dos variables.
 
-Formula
+La formula de calculo para el coeficiente de correlacion es:
 
-Caracteristicas
+$r= \frac{1}{N-1} \sum\limits_{i=1}^N \frac{(x_i-\bar{x})(y_i-\bar{y})}{S_x \cdot S_y}$
 
-Ejemplos
+$S_x$ es el desvio estandar estimado de X y $S_y$ es el desvio estandar estimado de Y.
 
-Tests
+Al agregar los desvios, la correlacion solo puede tomar valores entre -1 y 1 y asi se resuelve el problema que tiene la covarianza de verse afectada por la unidad de medida de las variables
 
+### Caracteristicas
+
+  1) Puede tomar valores entre -1 y 1
+
+  2) No se ve afectada por las unidades de medida de las variables
+
+  3) El valor absoluto (modulo) del coeficiente mide la fuerza de la relacion lineal entre X e y. Cuanto mayor sea el valor absoluto, mas fuerte es la relacion LINEAL entre X e Y
+
+  4) a) $r=1$ indica una relacion lineal perfecta positiva (los puntos se encuentra una recta diagonal de pendiente positiva)
+     b) $r=0$ indica que no existe relacion lineal entre X e Y 
+     c) $r=-1$ indica una relacion lineal perfecta negativa (los puntos se encuentra una recta diagonal de pendiente negativa)
+     
+Veamos la caracteristica 2) con nuestro ejemplo de la relacion entre analfabetismo y area
+
+La funcion `cor` permite calcular la correlacion entre dos variables.
+
+```{r}
+# Correlacion entre area (medida en millas cuadradas) y analfabetismo
+corr_1 = cor(x = estados$Area, y=estados$Illiteracy)
+corr_1
+# 1 milla cuadrada = 2.59 kilometros cuadrados
+area_kilometros = estados$Area*2.59
+# Correlacion entre area (medida en kilometros cuadradas) y analfabetismo
+corr_2=cor(x = area_kilometros, y=estados$Illiteracy)
+corr_2
+```
+
+Vemos que ambos coeficientes de correlacion son iguales.
+
+### Ejemplos
+
+Veamos el coeficiente de correlacion para las relaciones que graficamos antes:
+
+```{r}
+# Correlacion entre homicidios y analfabetismo
+corr_positiva = cor(x = estados$Murder, y=estados$Illiteracy)
+corr_positiva
+```
+
+```{r}
+# Correlacion entre homicidios y esperanza de vida
+corr_negativa = cor(x = estados$Murder, y=estados$life_exp)
+corr_negativa
+```
+
+```{r}
+# Covarianza entre area (medida en kilometros cuadradas) y analfabetismo
+corr_nula = cor(x = estados$Area, y=estados$Illiteracy)
+corr_nula
+```
+
+### GGAlly
+
+La libreria **GGally** es muy util porque nos permite resumir informacion sobre las relaciones de las variables de manera grafica.
+
+Con el comando `ggpairs` vamos a poder ver:
+
+1) **En la diagonal**: los graficos de distribucion de la variable
+
+2) **Por debajo de la diagonal**: Los graficos de dispersion para cada par de variables
+
+3) **Por encima de la diagonal**: Los coeficientes de correlacion para cada par de variables 
 
 
 ```{r, message=FALSE}
 
-ggpairs(estados) + theme_bw() 
+ggpairs(estados) + theme_bw() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
+
+
+### Tests
+
+El coeficiente de correlacion es el resultado de una estimacion sobre nuestro conjunto de datos. Por lo tanto, el numero que se obtiene va a depender de que individuos fueron seleccionados en la muestra.
+
+Veamos esto con un ejemplo
+
+```{r}
+# Sacamos el promedio de días con temperatura mínima por debajo de los 0 grados para los 50 estados
+mean(estados$Frost)
+# Sacamos la correlacion entre dias debajo de los 0 grados (Frost) y el analfabetismo 
+cor(estados$Frost, estados$Illiteracy)
+
+#Seleccionamos los 10 estados mas frios 
+frios= estados %>% arrange(desc(Frost)) %>% slice(1:10)
+# Sacamos el promedio de días con temperatura mínima por debajo de los 0 grados para esos 10 estados
+mean(frios$Frost)
+# Sacamos la correlacion entre dias debajo de los 0 grados (Frost) y el analfabetismo para esos 10 estados
+cor(frios$Frost, frios$Illiteracy)
+
+# Ahora seleccionamos los 10 estados mas calidos 
+calidos= estados %>% arrange(desc(Frost)) %>% slice(41:50)
+# Sacamos el promedio de días con temperatura mínima por debajo de los 0 grados para esos 10 estados
+mean(calidos$Frost)
+cor(calidos$Frost, calidos$Illiteracy)
+```
+
+Considerando los 50 estados vemos que en promedio tienen 104 días por debajo de 0 grados y la correlación entre días fríos y analfabetismo es negativa y bastante fuerte (igual a -0.67)
+
+Los 10 estados mas frios tienen en promedio 170 dias por debajo de los 0 grados (casi la mitad del año) mientras los 10 estados más cálidos tienen en promedio 24 días por debajo de los 0 grados (menos de un mes).
+
+Por su parte vemos que la correlación entre días fríos y analfabetismo es muy cercana a 0 (es igual a 0.02) para los estados más fríos, mientras que para los estados más cálidos la correlación es negativa y baja (es igual a -0.19).
+
 
 # Correlacion vs causalidad
 
