@@ -7,6 +7,13 @@ output:
     toc: true
     toc_float: true
 ---
+<style type="text/css">
+div.main-container {
+  max-width: 1600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
 
 #### Carga de librerías
 ```{r}
@@ -74,30 +81,69 @@ $q= \frac{1}{N-1} \sum\limits_{i=1}^N (x_i-\bar{x})(y_i-\bar{y})$
 
 * Cuando no ocurre ninguna de las dos cosas anteriores, la covarianza sera muy cercana a cero
 
-
 ### Interpretacion grafica
 
-```{r}
-ggplot(estados, aes(x=Murder,y=life_exp)) + geom_point(size=2) +
-    geom_hline(yintercept = mean(estados$life_exp), color='steelblue', linetype='dashed', size=1) +
-    geom_vline(xintercept = mean(estados$Murder), color='steelblue', linetype='dashed', size=1) +
-  labs(title='Asociacion negativa')+
-  theme_bw() + scale_x_continuous(limits = c(0,16))
-```
+A continuacion presentamos algunos graficos de dispersion entre variables del dataset de estados.
+
+**ASOCIACION POSITIVA**
+
+* En el eje horizontal se encuentra la variable Asesinatos (Murder) y en el eje vertical se encuentra la variable Analfabetismo (Illiteracy)
+
+* Un punto representa las mediciones de esas dos variables para un estado
+
+* La linea vertical punteada marca el promedio de Asesinatos (Murder)
+
+* La linea horizontal punteada marca el promedio de Analfabetismo (Illiteracy)
 
 ```{r}
 ggplot(estados, aes(x=Murder,y=Illiteracy)) + geom_point(size=2) +
   geom_hline(yintercept = mean(estados$Illiteracy),color='steelblue', linetype='dashed', size=1) +
   geom_vline(xintercept = mean(estados$Murder), color='steelblue', linetype='dashed', size=1) +
-  labs(title='Asociacion positiva')+
+  annotate(geom='text', x=c(6.5,8.3,15,15), y=c(2.9,2.9,1.5,0.8), label='+', colour='forestgreen', size=19) +
+  annotate(geom='text', x=c(6.5,8.3,0,0), y=c(0.3,0.3,1.5,0.8), label='-', colour='firebrick', size=27) +
+  labs(title='Asociacion positiva', x='Asesinatos (Murder)', y='Analfabetismo (Illiteracy)')+
   theme_bw() + scale_y_continuous(limits = c(0,3)) + scale_x_continuous(limits = c(0,16))
 ```
+
+**ASOCIACION NEGATIVA**
+
+* En el eje horizontal se encuentra la variable Asesinatos (Murder) y en el eje vertical se encuentra la variable Life Exp (Experanza de Vida)
+
+* Un punto representa las mediciones de esas dos variables para un estado
+
+* La linea vertical punteada marca el promedio de Asesinatos (Murder)
+
+* La linea horizontal punteada marca el promedio de Life Exp (Experanza de Vida)
+
+
+```{r}
+ggplot(estados, aes(x=Murder,y=life_exp)) + geom_point(size=2) +
+  geom_hline(yintercept = mean(estados$life_exp), color='steelblue', linetype='dashed', size=1, alpha=0.7) +
+  geom_vline(xintercept = mean(estados$Murder), color='steelblue', linetype='dashed', size=1, alpha=0.7) +
+  annotate(geom='text', x=c(6.5,8.3,15,15), y=c(74.2,74.2,71.7,70.1), label='+', colour='forestgreen', size=19) +
+  annotate(geom='text', x=c(6.5,8.3,0,0), y=c(67.9,67.9,71.7,70.1), label='-', colour='firebrick', size=27) +
+  labs(title='Asociacion negativa', x='Asesinatos (Murder)', y='Life Exp (Experanza Vida)')+
+  theme_bw() +
+  scale_x_continuous(limits = c(0,16)) + scale_y_continuous(limits = c(67.5,74.5))
+```
+
+**SIN ASOCIACION LINEAL**
+
+* En el eje horizontal se encuentra la variable Area y en el eje vertical se encuentra la variable Analfabetismo (Illiteracy)
+
+* Un punto representa las mediciones de esas dos variables para un estado
+
+* La linea vertical punteada marca el promedio de Area
+
+* La linea horizontal punteada marca el promedio de Analfabetismo (Illiteracy)
 
 ```{r}
 ggplot(estados, aes(x=Area,y=Illiteracy)) + geom_point(size=2) +
   geom_hline(yintercept = mean(estados$Illiteracy),color='steelblue', linetype='dashed', size=1) +
   geom_vline(xintercept = mean(estados$Area), color='steelblue', linetype='dashed', size=1) +
-  labs(title='Sin asociacion lineal')+
+  annotate(geom='text', x=c(-10000,150000,500000,500000), y=c(2.9,2.9,1.5,0.8), label='+', colour='forestgreen', size=19) +
+  annotate(geom='text', x=c(0,150000,-400000,-400000), y=c(-0.6,-0.6,1.5,0.8), label='-', colour='firebrick', size=27) +
+  labs(title='Sin asociacion lineal',y='Analfabetismo (Illiteracy)')+
   theme_bw() + scale_y_continuous(limits = c(-1,3)) + scale_x_continuous(limits = c(-400000,600000))
 ```
 
@@ -174,12 +220,16 @@ Veamos el coeficiente de correlacion para las relaciones que graficamos antes:
 corr_positiva = cor(x = estados$Murder, y=estados$Illiteracy)
 corr_positiva
 ```
+Existe una correlacion positiva fuerte entre la cantidad de homicidios y el porcentaje de analfabetas
+
 
 ```{r}
 # Correlacion entre homicidios y esperanza de vida
 corr_negativa = cor(x = estados$Murder, y=estados$life_exp)
 corr_negativa
 ```
+
+Existe una correlacion negativa fuerte entre la cantidad de homicidios y la esperanza de vida
 
 ```{r}
 # Covarianza entre area (medida en kilometros cuadradas) y analfabetismo
@@ -238,6 +288,7 @@ Los 10 estados mas frios tienen en promedio 170 dias por debajo de los 0 grados 
 
 Por su parte vemos que la correlación entre días fríos y analfabetismo es muy cercana a 0 (es igual a 0.02) para los estados más fríos, mientras que para los estados más cálidos la correlación es negativa y baja (es igual a -0.19).
 
+En conclusion, vemos que el coeficiente de correlacion puede cambiar mucho dependiendo de que individuos hayamos incluido en nuestro dataset (muestra)
 
 # Correlacion vs causalidad
 
