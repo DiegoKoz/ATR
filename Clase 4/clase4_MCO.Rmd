@@ -16,16 +16,17 @@ div.main-container {
 </style>
 
 #### Carga de librerías
-```{r}
+```{r, message=FALSE}
 library(tidyverse)
 library(GGally)
+library(cowplot)
 ```
 
 # Motivación y objetivo
 
 Nuestro objetivo va a ser crear un modelo estadístico sencillo que nos permita modelar la relación lineal entre dos variables: una será nuestra variable a explicar y la otra será nuestra variable explicativa. Para eso vamos a ver:
 
-1) El concepto de correlación, su estimación y los tests asociados
+1) El concepto de covarianza y correlación, su estimación y los tests asociados
 2) Las diferencias entre la correlación y causalidad
 3) Modelo de Regresión Lineal Simple: breve introducción teorica, interpretación y evaluación.
 
@@ -85,7 +86,7 @@ $q= \frac{1}{N-1} \sum\limits_{i=1}^N (x_i-\bar{x})(y_i-\bar{y})$
 
 A continuacion presentamos algunos graficos de dispersion entre variables del dataset de estados.
 
-**ASOCIACION POSITIVA**
+**ASOCIACION LINEAL POSITIVA**
 
 * En el eje horizontal se encuentra la variable Asesinatos (Murder) y en el eje vertical se encuentra la variable Analfabetismo (Illiteracy)
 
@@ -101,11 +102,26 @@ ggplot(estados, aes(x=Murder,y=Illiteracy)) + geom_point(size=2) +
   geom_vline(xintercept = mean(estados$Murder), color='steelblue', linetype='dashed', size=1) +
   annotate(geom='text', x=c(6.5,8.3,15,15), y=c(2.9,2.9,1.5,0.8), label='+', colour='forestgreen', size=19) +
   annotate(geom='text', x=c(6.5,8.3,0,0), y=c(0.3,0.3,1.5,0.8), label='-', colour='firebrick', size=27) +
-  labs(title='Asociacion positiva', x='Asesinatos (Murder)', y='Analfabetismo (Illiteracy)')+
+  labs(title='Asociacion lineal positiva', x='Asesinatos (Murder)', y='Analfabetismo (Illiteracy)')+
   theme_bw() + scale_y_continuous(limits = c(0,3)) + scale_x_continuous(limits = c(0,16))
 ```
 
-**ASOCIACION NEGATIVA**
+Vemos que los puntos se concentran en:
+
+* En el cuadrante 1) donde el valor de cada variable es mayor a su promedio. Entonces, la formula de la covarainza es positiva
+
+* En el cuadrante 3) donde el valor de cada variable es menor a su promedio. Entonces, la formula de la covarainza tambien es positiva
+
+Por lo tanto, la covarianza es positiva:
+
+La funcion `cov` permite calcular la covarianza entre dos variables.
+
+```{r}
+cov(x=estados$Murder, y=estados$Illiteracy)
+```
+
+
+**ASOCIACION LINEAL NEGATIVA**
 
 * En el eje horizontal se encuentra la variable Asesinatos (Murder) y en el eje vertical se encuentra la variable Life Exp (Experanza de Vida)
 
@@ -122,10 +138,23 @@ ggplot(estados, aes(x=Murder,y=life_exp)) + geom_point(size=2) +
   geom_vline(xintercept = mean(estados$Murder), color='steelblue', linetype='dashed', size=1, alpha=0.7) +
   annotate(geom='text', x=c(6.5,8.3,15,15), y=c(74.2,74.2,71.7,70.1), label='+', colour='forestgreen', size=19) +
   annotate(geom='text', x=c(6.5,8.3,0,0), y=c(67.9,67.9,71.7,70.1), label='-', colour='firebrick', size=27) +
-  labs(title='Asociacion negativa', x='Asesinatos (Murder)', y='Life Exp (Experanza Vida)')+
+  labs(title='Asociacion lineal negativa', x='Asesinatos (Murder)', y='Life Exp (Experanza Vida)')+
   theme_bw() +
   scale_x_continuous(limits = c(0,16)) + scale_y_continuous(limits = c(67.5,74.5))
 ```
+
+Vemos que los puntos se concentran en:
+
+* En el cuadrante 2) donde el valor de Asesinatos es mayor a su promedio y el valor de Esperanza de Vida es menor a su promedio. Entonces, la formula de la covarianza es negativa
+
+* En el cuadrante 4) donde el valor de Asesinatos es menor a su promedio y el valor de Esperanza de Vida es mayor a su promedio. Entonces, la formula de la covarainza tambien es positiva
+
+Por lo tanto, la covarianza es negativa:
+
+```{r}
+cov(x=estados$Murder, y=estados$life_exp)
+```
+
 
 **SIN ASOCIACION LINEAL**
 
@@ -147,9 +176,15 @@ ggplot(estados, aes(x=Area,y=Illiteracy)) + geom_point(size=2) +
   theme_bw() + scale_y_continuous(limits = c(-1,3)) + scale_x_continuous(limits = c(-400000,600000))
 ```
 
-La covarianza tiene una CARACTERISTICA que puede ser un PROBLEMA importante: se ve afectada por la unidad de medida de las variables.
+Vemos que los puntos se distribuyen entre el cuadrante 3) y 4) sin una estructura muy clara. Entonces decimos que no hay asociacion lineal entre las variables:
 
-La funcion `cov` permite calcular la covarianza entre dos variables.
+```{r}
+cov(x = estados$Area, y=estados$Illiteracy)
+```
+
+¿Qué pasó? Habiamos dicho que la covarianza entre Asesinatos y Analfabetismo era positiva y la covarianza entre Area y Analfabetismo era inexsitente. Sin embargo es mucho más grande que la covarianza entre Asesinatos y Analfabetismo que la primera.
+
+La covarianza tiene una CARACTERISTICA que puede ser un PROBLEMA importante: se ve afectada por la unidad de medida de las variables.
 
 Por ejemplo:
 
@@ -256,7 +291,9 @@ ggpairs(estados) + theme_bw() + theme(axis.text.x = element_text(angle = 90, hju
 ```
 
 
-### Tests
+### Test de Hipotesis
+
+#### Motivacion
 
 El coeficiente de correlacion es el resultado de una estimacion sobre nuestro conjunto de datos. Por lo tanto, el numero que se obtiene va a depender de que individuos fueron seleccionados en la muestra.
 
@@ -288,7 +325,93 @@ Los 10 estados mas frios tienen en promedio 170 dias por debajo de los 0 grados 
 
 Por su parte vemos que la correlación entre días fríos y analfabetismo es muy cercana a 0 (es igual a 0.02) para los estados más fríos, mientras que para los estados más cálidos la correlación es negativa y baja (es igual a -0.19).
 
-En conclusion, vemos que el coeficiente de correlacion puede cambiar mucho dependiendo de que individuos hayamos incluido en nuestro dataset (muestra)
+Vemos que el coeficiente de correlacion puede cambiar mucho dependiendo de que individuos hayamos incluido en nuestro dataset (muestra). Esto va suceder con cualquier medida estadística que calculemos sobre nuestro conjunto de datos.
+
+En conclusion, el coeficiente de correlacion (y otras medidas estadisticas como el promedio) va a tener cierta **VARIABILIDAD O INCERTIDUMBRE** en su estimación. 
+
+#### Test de Hipotesis
+
+Puntualmente, nos interesa saber:
+
+1) ¿Puede ser que el coeficiente de correlación sea igual a cero?
+
+2) ¿Qué tan probable es que sea igual a cero?
+
+Porque si es probable que el coeficiente de correlacion sea igual a cero, entonces no va a existir una relacion lineal importante entre esas dos variables
+
+En la siguiente imagen vemos:
+
+* La curva ROJA es la distribucion del coeficiente de correlacion entre Area y Analfabetismo. 
+
+* La curva VERDE es es la distribucion del coeficiente de correlacion entre Asesinatos y Analfabetismo
+
+* La linea punteada nos indica el punto en el cual el coeficiente de correlacion es cero.
+
+¿Cuál de estas dos curvas está más cerca del cero? ¿Cuál creen que es el coeficiente de correlación que es más probable que sea igual a cero?
+
+```{r}
+ggplot(data = data.frame(x = c(-1, 1)), aes(x)) +
+  stat_function(fun = dnorm, n = 100, args = list(mean = 0.07, sd = .1), color="firebrick", size=1.5) +
+  stat_function(fun = dnorm, n = 100, args = list(mean = 0.71, sd = .1), color="forestgreen",size=1.5) +
+  geom_vline(xintercept = 0, linetype='dashed', size=1) +
+  theme_bw() +
+  labs(title="Distribucion coeficientes de correlacion", x="Coeficiente de Correlacion", y="")+
+  scale_y_continuous(breaks = NULL)
+```
+
+A simple vista, parece ser que el coeficiente de correlacion entre Area y Analfabetismo tiene una probabilidad más alta de ser igual a cero ya que la curva roja está centrada más cerca del cero. Mientras que la curva verde se encuentra bastante alejada del cero, por lo tanto la probabilidad que el coeficiente sea igual a cero es muy baja.
+
+Podemos usar un test estadístico para responder correctamente a las dos preguntas que hicimos arriba. Vamos a TESTEAR la HIPOTESIS: El coeficiente de correlacion es igual a cero
+
+La función que vamos a utilizar se llama `cor.test`
+
+```{r}
+# Veamos la documentacion
+?cor.test
+# Al igual que para calcular el coeficiente de correlacion pasamos nuestras dos variables: X e Y
+cor.test(x=estados$Murder, y=estados$Illiteracy)
+```
+
+Observamos:
+
+1) Debajo de la parte que dice **95 percent confidence interval**: el **intervalo de confianza** para el coeficiente de correlacion.
+
+  * El primer valor es el valor mas chico del coeficiente de correlacion que esperamos ver
+  * El segundo valor es el valor mas grande del coeficiente de correlacion que esperamos ver
+
+IMPORTANTE: nos interesa ver si dentro del intervalo de confianza se encuentra el cero:
+
+  * Si esta DENTRO del INTERVALO, entonces puede ser que el COEFICIENTE DE CORRELACION sea igual a cero y NO EXISTA UNA RELACION LINEAL IMPORTANTE ENTRE LAS VARIABLES
+  * Si esta FUERA del INTERVALO, entonces es MUY POCO PROBABLE que el COEFICIENTE DE CORRELACION sea igual a cero y EXISTA UNA RELACION LINEAL IMPORTANTE ENTRE LAS VARIABLES
+
+2) **p-value**: es numero que va entre 0 y 1:
+  
+  * Cuanto mas cerca de 0 este, es MUY POCO PROBABLE que el COEFICIENTE DE CORRELACION sea igual a cero
+  * Cuanto mas cerca de 1 este, es MUY PROBABLE que el COEFICIENTE DE CORRELACION sea igual a cero
+  
+IMPORTANTE: Cuando el p-valor sea menor a 0.05 podemos estar bastante seguros que el COEFICIENTE DE CORRELACION es distinto de cero y EXISTE UNA RELACION LINEAL IMPORTANTE ENTRE LAS VARIABLES
+
+Para el caso de la correlacion entre **Asesinatos y Analfabetismo** vemos que:
+
+1) El intervalo de confianza NO contiene al cero
+
+2) El p-valor es mas chico que 0.05
+
+CONCLUSION: rechazamos que el COEFICIENTE DE CORRELACION es distinto de cero
+
+Veamos el test de la correlacion entre **Area y Analfabetismo**:
+
+```{r}
+cor.test(x=estados$Area, y=estados$Illiteracy)
+```
+
+Vemos que:
+
+1) El intervalo de confianza SI contiene al cero
+
+2) El p-valor es mucho mas grande que 0.05
+
+CONCLUSION: NO rechazamos que el COEFICIENTE DE CORRELACION es distinto de cero
 
 # Correlacion vs causalidad
 
@@ -316,17 +439,236 @@ Ejemplo de `estados` con Frost vs Illiteracy
 ggplot(estados, aes(x=Frost,y=Illiteracy)) + geom_point(size=2) +
   geom_hline(yintercept = mean(estados$Illiteracy),color='steelblue', linetype='dashed', size=1) +
   geom_vline(xintercept = mean(estados$Frost), color='steelblue', linetype='dashed', size=1) +
-  labs(title='Asociacion positiva')+
+  labs(title='¿Correlacion espuria?')+
   theme_bw() + scale_y_continuous(limits = c(-1,3)) + scale_x_continuous(limits = c(-10,200))
 ```
 
+```{r}
+cor(x=estados$Frost, y=estados$Illiteracy)
+```
+
+Existe una correlación negativa fuerte entre Analfabetismo y Cantidad de Dias debajo de los 0 grados.
+
+No tiene sentido decir: Para que haga menos frío, tenemos que reducir el analfabetismo en la población. Sin embargo, pueden existir factores que expliquen que los estados que más días fríos tienen, también tienen las menores tasas de analfabetismo. Por ejemplo, puede ser que en los estados donde hace más frío hay más escuelas porque la gente no viaja tanto por la nieve y eso lleva a que haya una menor tasa de analfabetismo.
+
+Poder encontrar estas variables ocultas es una parte muy importante del modelado estadístico.
 
 # Modelo
 
-## Definicion
+Realizar un modelo implica contar con una variable que deseamos explicar (**variable a predecir**) y una o más variables que sirven para explicarla (**variable/s predictora/s**). A su vez, necesitamos SUPONER cual es el tipo de relación entre las variables.
+
+## Modelo lineal simple
+
+### Definicion
+
+El modelo que vamos a usar es:
+
+$Y= \beta_0 + \beta_1 \cdot X + \varepsilon$
+
+1) Y es la **variable a predecir**
+
+2) X es la **variable predictora**
+
+3) La relacion que suponemos entre ambas variables una recta, por lo tanto la relacion es **LINEAL**
+
+4) $\varepsilon$ es un termino de error. La relacion entre las variables nunca va a ser exactamente igual a una recta, el termino de error da cuenta de cuan lejos esta nuestro modelo de los datos que vemos.
+
+**Tarea de ejemplo**
+
+Supongamos que nos interesa modelar la relacion entre asesinatos y la esperanza de vida en los estados de Estados Unidos.
+
+```{r}
+ggplot(estados, aes(x=Murder,y=life_exp)) +
+  geom_point(size=2) +
+  labs(title='Asesinatos y Esperanza de Vida', x='Asesinatos (Murder)', y='Life Exp (Experanza Vida)')+
+  theme_bw()
+```
+
+
+Entonces podemos usar el modelo lineal simple para esta tarea:
+
+1) Y sera **Esperanza de Vida**
+
+2) X sera **Asesinatos**
+
+Nuestro modelo nos queda igual a:
+
+$EsperanzaVida= \beta_0 + \beta_1 \cdot Asesinatos + \varepsilon$
+
+Entonces la tarea que tenemos por delante es encontrar los valores de $\beta_0$ y $\beta_1$.
+
+### Rectas
+
+El valor de $\beta_0$ es la **ordenada al origen** de mi recta mientras que $\beta_1$ es la **pendiente**
+
+Consideremos la recta $Y= 6 - 2X$
+
+```{r}
+# Creo la funcion
+funcion <- function(x) {6 - 2*x}
+# Grafico
+ggplot(data.frame(x = c(-1, 3)), aes(x)) +
+  stat_function(fun=funcion, colour='forestgreen', size=2)+
+  geom_vline(xintercept = 0) +
+  geom_hline(yintercept = 0) +
+  theme_bw()
+```
+
+Vemos que:
+
+*Cuando $x=0$ y es igual a la ordenada al origen. La ordenada al origen indica cual es el valor de la variable Y cuando la variable X es igual a cero
+
+*Cuando $x=1$, $y= 6-2.1=4$ . Cuando X aumento en 1 unidad Y se redujo en 2 unidades. La pendiente nos indica justamente eso: cuanto cambia la variable Y, cuando la variable X cambia en una unidad.
+
+### Parámetros del modelo
+
+Volviendo a nuestro modelo de Asesinatos y Esperanza de Vida, surge la pregunta:
+
+¿Hay valores de la ordenada al origen y la pendiente que sean mejores para explicar la relación entre ellas?
+
+Probemos algunas rectas y veamos cual se ajusta mejor a nuestros datos
+
+```{r}
+recta1 <- ggplot(estados, aes(x=Murder,y=life_exp)) +
+  geom_point(size=2) +
+  geom_abline(intercept = 73, slope = -0.3, colour='forestgreen', size=1.5) +
+  labs(title='Recta 1', x='Asesinatos (Murder)', y='Life Exp (Experanza Vida)')+
+  theme_bw()
+
+recta2 <- ggplot(estados, aes(x=Murder,y=life_exp)) +
+  geom_point(size=2) +
+  geom_abline(intercept = 69, slope = 0.2, colour='firebrick', size=1.5) +
+  labs(title='Recta 2', x='Asesinatos (Murder)', y='Life Exp (Experanza Vida)')+
+  theme_bw()
+
+recta3 <- ggplot(estados, aes(x=Murder,y=life_exp)) +
+  geom_point(size=2) +
+  geom_abline(intercept = 71, slope = -0.3, colour='steelblue', size=1.5) +
+  labs(title='Recta 3', x='Asesinatos (Murder)', y='Life Exp (Experanza Vida)')+
+  theme_bw()
+
+plot_grid(recta1,recta2,recta3)
+
+```
+
+* La recta 2 atraviesa los puntos por la mitad. No se ajusta para nada a los datos
+
+* La recta 3 deja todos los puntos por encima de ella. Seria un mal modelo
+
+* La recta 1 parece ser que se ajusta mucho mejor a la estructura de los datos
+
+Entonces, ya sabemos que puede haber valores de $\beta_0$ (ordenada al origen) y $\beta_1$ (pendiente) que son mejores que otros.
+
+Cuando creemos un modelo lineal, el modelo va a obtener los **MEJORES** valores $\beta_0$ y $\beta_1$. Son los MEJORES porque son los que producen la RECTA que MEJOR se AJUSTA a los DATOS. 
 
 ## Modelo en R
 
+La función para crear un modelo lineal en R es `lm()`. En ella le tenemos que pasar:
+
+* formula: es la formula de nuestro modelo y se escribe Y~X
+
+* data: es la tabla/dataset que estamos usando
+
+```{r}
+#Creo el modelo con life_exp (variable a predecir) ~ Murder (variable predictora)
+modelo_asesinatos<-lm(formula = life_exp~Murder, data = estados)
+
+modelo_asesinatos
+```
+
+Cuando creamos un modelo vamos a poder acceder a mucha informacion contenida en él. Podemos ver que cosas tiene dentro con `modelo_asesinatos$`
+
 ### Interpretacion
 
-### Evaluacion
+Recordemos que nuestro modelo era:
+
+$EsperanzaVida= \beta_0 + \beta_1 \cdot Asesinatos + \varepsilon$
+
+Y queriamos encontrar los valores de $\beta_0$ y $\beta_1$.
+
+Si realizamos `modelo_asesinatos$coefficients` vamos a poder acceder a los valores de $\beta_0$ y $\beta_1$ estimados por la regresion simple:
+
+```{r}
+modelo_asesinatos$coefficients
+```
+
+¿Cómo interpretamos los coeficientes?
+
+* El intercepto nos indica que si no hay asesinatos la esperanza de vida en promedio para los estados es de 73 años
+
+* La pendiente nos indica que cada asesinato adicional reduce la esperanza de vida en promedio para los estados en 0.3 años. Es decir, que más o menos, cada 3 homicidios la esperanza de vida promedio se reduce en 1 año.
+
+Veamos como luce nuestro modelo lineal gráficamente:
+
+```{r}
+ggplot(estados, aes(x=Murder,y=life_exp)) +
+  geom_point(size=2) +
+  geom_abline(intercept = 73, slope = -0.3, colour='forestgreen', size=1.5) +
+  geom_vline(xintercept = 0) +
+  labs(title='Modelo lineal', x='Asesinatos (Murder)', y='Life Exp (Experanza Vida)')+
+  theme_bw()
+```
+
+### Evaluacion del modelo
+
+Hasta ahora no sabemos que tan bueno es nuestro modelo para explicar la esperanza de vida.
+
+Para evaluar que tan bueno es nuestro modelo vamos a ver dos cosas:
+
+1) El p-valor de la ordenada al origen y la pendiente
+
+2) El valor del R cuadrado
+
+**p-valor**
+
+Al igual que con el coeficiente de correlación, las estimaciones de $\beta_0$ y $\beta_1$ van a tener un p-valor asociado. 
+
+En este caso:
+
+* Si el p-valor es inferior a 0.05, estamos bastante seguros que la variable es buena para explicar a nuestra variable Y
+
+* Si el p-valor es superior a 0.05, estamos bastante seguros que la variable no sirve para explicar a nuestra variable Y
+
+**R cuadrado**
+
+Es un valor que va entre 0 y 1, e indica que tan bueno es mi modelo en total para explicar mi variable Y. 
+
+IMPORTANTE: podemos usar el **R cuadrado** para comparar modelos distintos entre sí
+
+* Si se encuentra muy cerca de 0, el modelo es malo para explicar a la variable Y
+
+* Si se encuentra muy cerca de 1, el modelo es bueno para explicar a la variable Y
+
+Con la función `summary` accedemos a un resumen del modelo que va a tener todas las cosas mencionadas anteriormente
+
+```{r}
+# Resumen del modelo
+summary(modelo_asesinatos)
+```
+
+Notemos que:
+
+* Ambos p-valores son mas chicos que 0.05. Entonces la variable Asesinatos es buena para explicar la Esperanza de Vida
+
+* El R cuadrado (Multiple R-squared) es igual a 0.61. Por lo que podemos decir que es un buen modelo
+
+Ahora creemos otro modelo, para ver si su R-cuadrado es mayor o menor.
+
+Nuestro nuevo modelo va a tratar de explicar la Esperanza de Vida a partir del Ingreso per capita
+
+```{r}
+#Creo el modelo con life_exp (variable a predecir) ~ Income (variable predictora)
+modelo_ingreso<-lm(formula = life_exp~Income, data = estados)
+# Resumen del modelo
+summary(modelo_ingreso)
+```
+
+Notemos que:
+
+* Ambos p-valores son mas chicos que 0.05. Entonces la variable Ingreso es buena para explicar la Esperanza de Vida
+
+* El R cuadrado (Multiple R-squared) es igual a 0.12
+
+En conclusion, nuestro primer modelo tiene un R cuadrado mucho más alto que el segundo modelo. Por lo tanto, el primer modelo es mucho mejor para predecir la esperanza de vida de los estados de Estados Unidos que el segundo.
+
+
