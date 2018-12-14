@@ -24,18 +24,20 @@ library(cowplot)
 
 # Motivación y objetivo
 
-Nuestro objetivo va a ser crear un modelo estadístico sencillo que nos permita modelar la relación lineal entre dos variables: una será nuestra variable a explicar y la otra será nuestra variable explicativa. Para eso vamos a ver:
+Nuestro objetivo va a ser crear un modelo estadístico sencillo que nos permita modelar una relación lineal entre dos variables: una será nuestra variable a explicar y la otra será nuestra variable explicativa. Para eso vamos a ver:
 
 1) El concepto de covarianza y correlación, su estimación y los tests asociados
 2) Las diferencias entre la correlación y causalidad
-3) Modelo de Regresión Lineal Simple: breve introducción teorica, interpretación y evaluación.
+3) Modelo de Regresión Lineal Simple: breve introducción teórica, interpretación y evaluación.
 
 # Dataset
 
 Vamos a trabajar con el dataset **state.x77** que se encuentra en R. Como es una matriz, lo transformamos a un dataframe con `as.data.frame()`
 
 ```{r}
-estados <- state.x77 %>% as.data.frame() %>% rename(life_exp = `Life Exp`, hs_grad=`HS Grad`)
+estados <- state.x77 %>%
+  as.data.frame() %>% # Transformo la matriz a dataframe
+  rename(life_exp = `Life Exp`, hs_grad=`HS Grad`) # Renombro las variables para no tener problema con los espacios
 ```
 
 Para conocer el dataset utilicemos `?state.x77` para abrir la ayuda de R y la funcion `glimpse()` para ver la estructura de nuestros datos.
@@ -62,19 +64,19 @@ Veamos algunas estadisticas de resumen para conocer un poco más nuestras variab
 summary(estados)
 ```
 
-Podemos ver el valor minimo, primer cuartil, mediana, promedio, tercer cuartil y valor maximo de nuestras variables numericas
+Podemos ver el valor mínimo, primer cuartil, mediana, promedio, tercer cuartil y valor máximo de nuestras variables numéricas
 
-# Covarianza y correlacion
+# Covarianza y correlación
 
 ## Covarianza
 
-### Definicion
+### Definición
 
-Es un estadistico que permite medir la variabilidad conjunta de 2 variables.
+Es un estadístico que permite medir la variabilidad conjunta de 2 variables.
 
-Nos permite medir la asociacion lineal entre dos variables.
+Puntualmente, nos permite medir la asociacion lineal entre dos variables.
 
-La formula de calculo es esta medida es:
+La fórmula de cálculo de esta medida es:
 
 $q= \frac{1}{N-1} \sum\limits_{i=1}^N (x_i-\bar{x})(y_i-\bar{y})$
 
@@ -82,11 +84,11 @@ $q= \frac{1}{N-1} \sum\limits_{i=1}^N (x_i-\bar{x})(y_i-\bar{y})$
 
 * Cuando valores altos de **x** corresponden a valores bajos de **y**, y valores bajos de **x** corresponden a valores altos de **y** la COVARIANZA es negativa
 
-* Cuando no ocurre ninguna de las dos cosas anteriores, la covarianza sera muy cercana a cero
+* Cuando no ocurre ninguna de las dos cosas anteriores, la covarianza será muy cercana a cero
 
 ### Interpretacion grafica
 
-A continuacion presentamos algunos graficos de dispersion entre variables del dataset de estados.
+A continuación presentamos algunos gráficos de dispersión entre variables del dataset de estados.
 
 **ASOCIACION LINEAL POSITIVA**
 
@@ -94,9 +96,9 @@ A continuacion presentamos algunos graficos de dispersion entre variables del da
 
 * Un punto representa las mediciones de esas dos variables para un estado
 
-* La linea vertical punteada marca el promedio de Asesinatos (Murder)
+* La línea vertical punteada marca el promedio de Asesinatos (Murder)
 
-* La linea horizontal punteada marca el promedio de Analfabetismo (Illiteracy)
+* La línea horizontal punteada marca el promedio de Analfabetismo (Illiteracy)
 
 ```{r}
 ggplot(estados, aes(x=Murder,y=Illiteracy)) + geom_point(size=2) +
@@ -114,9 +116,9 @@ ggplot(estados, aes(x=Murder,y=Illiteracy)) + geom_point(size=2) +
 
 Vemos que los puntos se concentran en:
 
-* En el cuadrante 1) donde el valor de cada variable es mayor a su promedio. Entonces, la formula de la covarainza es positiva
+* En el cuadrante 1) donde el valor de cada variable es mayor a su promedio. Entonces, la fórmula de la covarianza es positiva
 
-* En el cuadrante 3) donde el valor de cada variable es menor a su promedio. Entonces, la formula de la covarainza tambien es positiva
+* En el cuadrante 3) donde el valor de cada variable es menor a su promedio. Entonces, la fórmula de la covarianza tambien es positiva
 
 Por lo tanto, la covarianza es positiva:
 
@@ -133,9 +135,9 @@ cov(x=estados$Murder, y=estados$Illiteracy)
 
 * Un punto representa las mediciones de esas dos variables para un estado
 
-* La linea vertical punteada marca el promedio de Asesinatos (Murder)
+* La línea vertical punteada marca el promedio de Asesinatos (Murder)
 
-* La linea horizontal punteada marca el promedio de Life Exp (Experanza de Vida)
+* La línea horizontal punteada marca el promedio de Life Exp (Experanza de Vida)
 
 
 ```{r}
@@ -155,9 +157,9 @@ ggplot(estados, aes(x=Murder,y=life_exp)) + geom_point(size=2) +
 
 Vemos que los puntos se concentran en:
 
-* En el cuadrante 2) donde el valor de Asesinatos es mayor a su promedio y el valor de Esperanza de Vida es menor a su promedio. Entonces, la formula de la covarianza es negativa
+* En el cuadrante 2) donde el valor de Asesinatos es menor a su promedio y el valor de Esperanza de Vida es mayor a su promedio. Entonces, la fórmula de la covarianza tambien es positiva
 
-* En el cuadrante 4) donde el valor de Asesinatos es menor a su promedio y el valor de Esperanza de Vida es mayor a su promedio. Entonces, la formula de la covarainza tambien es positiva
+* En el cuadrante 4) donde el valor de Asesinatos es mayor a su promedio y el valor de Esperanza de Vida es menor a su promedio. Entonces, la fórmula de la covarianza es negativa
 
 Por lo tanto, la covarianza es negativa:
 
@@ -172,9 +174,9 @@ cov(x=estados$Murder, y=estados$life_exp)
 
 * Un punto representa las mediciones de esas dos variables para un estado
 
-* La linea vertical punteada marca el promedio de Area
+* La línea vertical punteada marca el promedio de Area
 
-* La linea horizontal punteada marca el promedio de Analfabetismo (Illiteracy)
+* La línea horizontal punteada marca el promedio de Analfabetismo (Illiteracy)
 
 ```{r}
 ggplot(estados, aes(x=Area,y=Illiteracy)) + geom_point(size=2) +
@@ -190,15 +192,15 @@ ggplot(estados, aes(x=Area,y=Illiteracy)) + geom_point(size=2) +
   theme_bw() + scale_y_continuous(limits = c(-1,3)) + scale_x_continuous(limits = c(-400000,600000))
 ```
 
-Vemos que los puntos se distribuyen entre el cuadrante 3) y 4) sin una estructura muy clara. Entonces decimos que no hay asociacion lineal entre las variables:
+Vemos que los puntos se distribuyen entre el cuadrante 2) y 3) sin una estructura muy clara. Entonces decimos que no hay asociación lineal entre las variables:
 
 ```{r}
 cov(x = estados$Area, y=estados$Illiteracy)
 ```
 
-¿Qué pasó? Habiamos dicho que la covarianza entre Asesinatos y Analfabetismo era positiva y la covarianza entre Area y Analfabetismo era inexsitente. Sin embargo es mucho más grande que la covarianza entre Asesinatos y Analfabetismo que la primera.
+¿Qué pasó? Habíamos dicho que la covarianza entre Asesinatos y Analfabetismo era positiva y la covarianza entre Area y Analfabetismo era inexsistente. Sin embargo, la segunda es mucho más grande que la primera.
 
-La covarianza tiene una CARACTERISTICA que puede ser un PROBLEMA importante: se ve afectada por la unidad de medida de las variables.
+La covarianza tiene una **CARACTERÍSTICA** que puede ser un **PROBLEMA** importante: se ve afectada por la unidad de medida de las variables.
 
 Por ejemplo:
 
@@ -213,35 +215,35 @@ cov_2=cov(x = area_kilometros, y=estados$Illiteracy)
 cov_2
 ```
 
-La covarianza entre el area y analfabetismo es distinta dependiendo como midamos el area. Si la medimos en millas cuadras la covarianza es 4018.3 y si la medimos en kilometros cuadrados es igual a 10407.5. 
+La covarianza entre el área y analfabetismo es distinta dependiendo de como midamos el área. Si la medimos en millas cuadras la covarianza es 4018.3 y si la medimos en kilómetros cuadrados es igual a 10407.5. 
 
-Como la covarianza se ve afectada por la unidad de medida de las variables puede ser muy dificil (o imposible) realizar una comparacion entre las covarianzas de distintas variables. Para eso podemos utilizar otra medida
+Como la covarianza se ve afectada por la unidad de medida de las variables puede ser muy difícil (o imposible) realizar una comparación entre las covarianzas de distintas variables. Para eso podemos utilizar otra medida
 
-## Correlacion
+## Correlación
 
-### Definicion
+### Definición
 
-Al igual que la covarianza, la correlacion nos permite medir la asociacion lineal entre dos variables.
+Al igual que la covarianza, la correlación nos permite medir la asociación lineal entre dos variables.
 
-La formula de calculo para el coeficiente de correlacion es:
+La fórmula de calculo para el coeficiente de correlación es:
 
 $r= \frac{1}{N-1} \sum\limits_{i=1}^N \frac{(x_i-\bar{x})(y_i-\bar{y})}{S_x \cdot S_y}$
 
-$S_x$ es el desvio estandar estimado de X y $S_y$ es el desvio estandar estimado de Y.
+$S_x$ es el desvío estándar estimado de X y $S_y$ es el desvío estándar estimado de Y.
 
-Al agregar los desvios, la correlacion solo puede tomar valores entre -1 y 1 y asi se resuelve el problema que tiene la covarianza de verse afectada por la unidad de medida de las variables
+Al agregar los desvíos, la correlación sólo puede tomar valores entre -1 y 1 y así se resuelve el problema que tiene la covarianza de verse afectada por la unidad de medida de las variables
 
-### Caracteristicas
+### Características
 
   1) Puede tomar valores entre -1 y 1
 
   2) No se ve afectada por las unidades de medida de las variables
 
-  3) El valor absoluto (modulo) del coeficiente mide la fuerza de la relacion lineal entre X e y. Cuanto mayor sea el valor absoluto, mas fuerte es la relacion LINEAL entre X e Y
+  3) El valor absoluto (módulo) del coeficiente mide la fuerza de la relacion lineal entre X e y. Cuanto mayor sea el valor absoluto, más fuerte es la relación LINEAL entre X e Y
 
-  4) a) $r=1$ indica una relacion lineal perfecta positiva (los puntos se encuentra una recta diagonal de pendiente positiva)
-     b) $r=0$ indica que no existe relacion lineal entre X e Y 
-     c) $r=-1$ indica una relacion lineal perfecta negativa (los puntos se encuentra una recta diagonal de pendiente negativa)
+  4) a) $r=1$ indica una relación lineal perfecta positiva (los puntos se encuentra una recta diagonal de pendiente positiva)
+     b) $r=0$ indica que no existe relación lineal entre X e Y 
+     c) $r=-1$ indica una relación lineal perfecta negativa (los puntos se encuentra una recta diagonal de pendiente negativa)
      
 Veamos la caracteristica 2) con nuestro ejemplo de la relacion entre analfabetismo y area
 
@@ -258,18 +260,18 @@ corr_2=cor(x = area_kilometros, y=estados$Illiteracy)
 corr_2
 ```
 
-Vemos que ambos coeficientes de correlacion son iguales.
+Vemos que ambos coeficientes de correlación son iguales.
 
 ### Ejemplos
 
-Veamos el coeficiente de correlacion para las relaciones que graficamos antes:
+Veamos el coeficiente de correlación para las relaciones que graficamos antes:
 
 ```{r}
 # Correlacion entre homicidios y analfabetismo
 corr_positiva = cor(x = estados$Murder, y=estados$Illiteracy)
 corr_positiva
 ```
-Existe una correlacion positiva fuerte entre la cantidad de homicidios y el porcentaje de analfabetas
+Existe una correlación positiva fuerte entre la cantidad de homicidios y el porcentaje de analfabetas
 
 
 ```{r}
@@ -278,25 +280,26 @@ corr_negativa = cor(x = estados$Murder, y=estados$life_exp)
 corr_negativa
 ```
 
-Existe una correlacion negativa fuerte entre la cantidad de homicidios y la esperanza de vida
+Existe una correlación negativa fuerte entre la cantidad de homicidios y la esperanza de vida
 
 ```{r}
 # Covarianza entre area (medida en kilometros cuadradas) y analfabetismo
 corr_nula = cor(x = estados$Area, y=estados$Illiteracy)
 corr_nula
 ```
+Existe una correlación positiva muy débil entre área y analfabetismo
 
 ### GGAlly
 
-La libreria **GGally** es muy util porque nos permite resumir informacion sobre las relaciones de las variables de manera grafica.
+La libreria **GGally** es muy útil porque nos permite resumir información sobre las relaciones de las variables de manera gráfica.
 
 Con el comando `ggpairs` vamos a poder ver:
 
-1) **En la diagonal**: los graficos de distribucion de la variable
+1) **En la diagonal**: los gráficos de distribucion de la variable
 
-2) **Por debajo de la diagonal**: Los graficos de dispersion para cada par de variables
+2) **Por debajo de la diagonal**: los gráficos de dispersion para cada par de variables
 
-3) **Por encima de la diagonal**: Los coeficientes de correlacion para cada par de variables 
+3) **Por encima de la diagonal**: los coeficientes de correlacion para cada par de variables 
 
 
 ```{r, message=FALSE}
@@ -304,12 +307,19 @@ Con el comando `ggpairs` vamos a poder ver:
 ggpairs(estados) + theme_bw() + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
+Por ejemplo:
 
-### Test de Hipotesis
+* En la fila 2, columna 2 vemos la distribución de la variable ingreso
 
-#### Motivacion
+* En la fila 2, columna 1 vemos el diagrama de dispersión entre población e ingreso
 
-El coeficiente de correlacion es el resultado de una estimacion sobre nuestro conjunto de datos. Por lo tanto, el numero que se obtiene va a depender de que individuos fueron seleccionados en la muestra.
+* En la fila 2, columna 3 vemos el coeficiente de correlación entre el ingreso y el porcentaje de analfabetas
+
+### Test de Hipótesis
+
+#### Motivación
+
+El coeficiente de correlación es el resultado de una estimación sobre nuestro conjunto de datos. Por lo tanto, el número que se obtiene va a depender de que individuos fueron seleccionados en la muestra.
 
 Veamos esto con un ejemplo
 
@@ -335,15 +345,15 @@ cor(calidos$Frost, calidos$Illiteracy)
 
 Considerando los 50 estados vemos que en promedio tienen 104 días por debajo de 0 grados y la correlación entre días fríos y analfabetismo es negativa y bastante fuerte (igual a -0.67)
 
-Los 10 estados mas frios tienen en promedio 170 dias por debajo de los 0 grados (casi la mitad del año) mientras los 10 estados más cálidos tienen en promedio 24 días por debajo de los 0 grados (menos de un mes).
+Los 10 estados más fríos tienen en promedio 170 días por debajo de los 0 grados (casi la mitad del año) mientras los 10 estados más cálidos tienen en promedio 24 días por debajo de los 0 grados (menos de un mes).
 
-Por su parte vemos que la correlación entre días fríos y analfabetismo es muy cercana a 0 (es igual a 0.02) para los estados más fríos, mientras que para los estados más cálidos la correlación es negativa y baja (es igual a -0.19).
+Por su parte, vemos que la correlación entre días fríos y analfabetismo es muy cercana a 0 (es igual a 0.02) para los estados más fríos, mientras que para los estados más cálidos la correlación es negativa y baja (es igual a -0.19).
 
-Vemos que el coeficiente de correlacion puede cambiar mucho dependiendo de que individuos hayamos incluido en nuestro dataset (muestra). Esto va suceder con cualquier medida estadística que calculemos sobre nuestro conjunto de datos.
+Vemos que el coeficiente de correlación puede cambiar mucho dependiendo de que individuos hayamos incluido en nuestro dataset (muestra). Esto va suceder con cualquier medida estadística que calculemos sobre nuestro conjunto de datos.
 
-En conclusion, el coeficiente de correlacion (y otras medidas estadisticas como el promedio) va a tener cierta **VARIABILIDAD O INCERTIDUMBRE** en su estimación. 
+En conclusión, el coeficiente de correlación (y otras medidas estadísticas como el promedio) va a tener cierta **VARIABILIDAD O INCERTIDUMBRE** en su estimación. 
 
-#### Test de Hipotesis
+#### Test de Hipótesis
 
 Puntualmente, nos interesa saber:
 
@@ -351,15 +361,14 @@ Puntualmente, nos interesa saber:
 
 2) ¿Qué tan probable es que sea igual a cero?
 
-Porque si es probable que el coeficiente de correlacion sea igual a cero, entonces no va a existir una relacion lineal importante entre esas dos variables
+Porque, si es probable que el coeficiente de correlacion sea igual a cero, entonces no va a existir una relacion lineal importante entre esas dos variables
 
 En la siguiente imagen vemos:
 
-* La curva ROJA es la distribucion del coeficiente de correlacion entre Area y Analfabetismo. 
+* La curva ROJA es la distribución del coeficiente de correlación entre Area y Analfabetismo.
+* La curva VERDE es es la distribución del coeficiente de correlación entre Asesinatos y Analfabetismo
 
-* La curva VERDE es es la distribucion del coeficiente de correlacion entre Asesinatos y Analfabetismo
-
-* La linea punteada nos indica el punto en el cual el coeficiente de correlacion es cero.
+* La linea punteada nos indica el punto en el cual el coeficiente de correlación es cero.
 
 ¿Cuál de estas dos curvas está más cerca del cero? ¿Cuál creen que es el coeficiente de correlación que es más probable que sea igual a cero?
 
@@ -375,7 +384,7 @@ ggplot(data = data.frame(x = c(-1, 1)), aes(x)) +
 
 A simple vista, parece ser que el coeficiente de correlacion entre Area y Analfabetismo tiene una probabilidad más alta de ser igual a cero ya que la curva roja está centrada más cerca del cero. Mientras que la curva verde se encuentra bastante alejada del cero, por lo tanto la probabilidad que el coeficiente sea igual a cero es muy baja.
 
-Podemos usar un test estadístico para responder correctamente a las dos preguntas que hicimos arriba. Vamos a TESTEAR la HIPOTESIS: El coeficiente de correlacion es igual a cero
+Podemos usar un test estadístico para responder correctamente a las dos preguntas que hicimos arriba. Vamos a TESTEAR la HIPÓTESIS: El coeficiente de correlacion es igual a cero
 
 La función que vamos a utilizar se llama `cor.test`
 
@@ -388,30 +397,30 @@ cor.test(x=estados$Murder, y=estados$Illiteracy)
 
 Observamos:
 
-1) Debajo de la parte que dice **95 percent confidence interval**: el **intervalo de confianza** para el coeficiente de correlacion.
+1) Debajo de la parte que dice **95 percent confidence interval**: el **intervalo de confianza** para el coeficiente de correlación.
 
-  * El primer valor es el valor mas chico del coeficiente de correlacion que esperamos ver
-  * El segundo valor es el valor mas grande del coeficiente de correlacion que esperamos ver
+  * El primer valor es el valor más chico que esperamos ver del coeficiente de correlación 
+  * El segundo valor es el valor más grande que esperamos ver del coeficiente de correlación 
 
 IMPORTANTE: nos interesa ver si dentro del intervalo de confianza se encuentra el cero:
 
-  * Si esta DENTRO del INTERVALO, entonces puede ser que el COEFICIENTE DE CORRELACION sea igual a cero y NO EXISTA UNA RELACION LINEAL IMPORTANTE ENTRE LAS VARIABLES
+  * Si esta DENTRO del INTERVALO, entonces es PROBABLE que el COEFICIENTE DE CORRELACION sea igual a cero y NO EXISTA UNA RELACION LINEAL IMPORTANTE ENTRE LAS VARIABLES
   * Si esta FUERA del INTERVALO, entonces es MUY POCO PROBABLE que el COEFICIENTE DE CORRELACION sea igual a cero y EXISTA UNA RELACION LINEAL IMPORTANTE ENTRE LAS VARIABLES
 
-2) **p-value**: es numero que va entre 0 y 1:
+2) **p-value**: es número que va entre 0 y 1:
   
-  * Cuanto mas cerca de 0 este, es MUY POCO PROBABLE que el COEFICIENTE DE CORRELACION sea igual a cero
-  * Cuanto mas cerca de 1 este, es MUY PROBABLE que el COEFICIENTE DE CORRELACION sea igual a cero
+  * Cuanto más cerca de 0 este, es MUY POCO PROBABLE que el COEFICIENTE DE CORRELACION sea igual a cero
+  * Cuanto más cerca de 1 este, es MUY PROBABLE que el COEFICIENTE DE CORRELACION sea igual a cero
   
-IMPORTANTE: Cuando el p-valor sea menor a 0.05 podemos estar bastante seguros que el COEFICIENTE DE CORRELACION es distinto de cero y EXISTE UNA RELACION LINEAL IMPORTANTE ENTRE LAS VARIABLES
+**IMPORTANTE**: Cuando el p-valor sea menor a 0.05 podemos estar bastante seguros que el COEFICIENTE DE CORRELACIÓN es distinto de cero y EXISTE UNA RELACIÓN LINEAL IMPORTANTE ENTRE LAS VARIABLES
 
-Para el caso de la correlacion entre **Asesinatos y Analfabetismo** vemos que:
+Para el caso de la correlación entre **Asesinatos y Analfabetismo** vemos que:
 
 1) El intervalo de confianza NO contiene al cero
 
 2) El p-valor es mas chico que 0.05
 
-CONCLUSION: rechazamos que el COEFICIENTE DE CORRELACION es distinto de cero
+**CONCLUSIÓN**: rechazamos que el COEFICIENTE DE CORRELACIÓN es distinto de cero
 
 Veamos el test de la correlacion entre **Area y Analfabetismo**:
 
@@ -425,21 +434,21 @@ Vemos que:
 
 2) El p-valor es mucho mas grande que 0.05
 
-CONCLUSION: NO rechazamos que el COEFICIENTE DE CORRELACION es distinto de cero
+**CONCLUSIÓN**: NO rechazamos que el COEFICIENTE DE CORRELACIÓN es distinto de cero
 
-# Correlacion vs causalidad
+# Correlación vs causalidad
 
-La correlacion mide el grado de asociacion lineal entre dos variables.
+La correlación mide el grado de asociación lineal entre dos variables.
 
-La CAUSALIDAD indica que una variable o variables (variables predictoras/exogenas/explicativas) sirven para explicar el comportamiento de otra variable (variable a predecir/endogena/ a explicar)
+La CAUSALIDAD indica que una o más variables (variables predictoras/exogenas/explicativas) sirven para explicar el comportamiento de otra variable (variable a predecir/endogena/ a explicar)
 
-Puede haber variables con una baja (o nula) correlacion, y sin embargo que exista otro tipo de relacion entre ellas. Como tambien pueden existir variables con una alta correlacion pero que no podamos explicar el vinculo entre ellas.
+Puede haber variables con una baja (o nula) correlación, y sin embargo, que exista otro tipo de relación entre ellas. Como tambien pueden existir variables con una alta correlación pero que no podamos explicar el vinculo entre ellas.
 
 Para este segundo caso, podemos clasificarlo en dos situaciones:
 
-1) **Correlacion espuria**: dos variables tienen una correlacion elevada por motivos puramente azarosos
+1) **Correlación espuria**: dos variables tienen una correlación elevada por motivos puramente azarosos
 
-2) **Variables ocultas**: dos variables tienen una correlacion elevada porque hay informacion "escondida" en alguna de ellas (o en ambas)
+2) **Variables ocultas**: dos variables tienen una correlación elevada porque hay información "escondida" en alguna de ellas (o en ambas)
 
 Veamos algunos ejemplos para aclarar la situacion
 
@@ -483,13 +492,13 @@ $Y= \beta_0 + \beta_1 \cdot X + \varepsilon$
 
 2) X es la **variable predictora**
 
-3) La relacion que suponemos entre ambas variables una recta, por lo tanto la relacion es **LINEAL**
+3) La relación que suponemos entre ambas variables es una recta, por lo tanto la relación es **LINEAL**
 
-4) $\varepsilon$ es un termino de error. La relacion entre las variables nunca va a ser exactamente igual a una recta, el termino de error da cuenta de cuan lejos esta nuestro modelo de los datos que vemos.
+4) $\varepsilon$ es un termino de error. La relación entre las variables nunca va a ser exactamente igual a una recta, el termino de error da cuenta de cuán lejos esta nuestro modelo (nuestra recta) de los datos que vemos.
 
 **Tarea de ejemplo**
 
-Supongamos que nos interesa modelar la relacion entre asesinatos y la esperanza de vida en los estados de Estados Unidos.
+Supongamos que nos interesa modelar la relación entre asesinatos y la esperanza de vida en los estados de Estados Unidos.
 
 ```{r}
 ggplot(estados, aes(x=Murder,y=life_exp)) +
@@ -509,7 +518,7 @@ Nuestro modelo nos queda igual a:
 
 $EsperanzaVida= \beta_0 + \beta_1 \cdot Asesinatos + \varepsilon$
 
-Entonces la tarea que tenemos por delante es encontrar los valores de $\beta_0$ y $\beta_1$.
+Nosotros ya contamos con los datos de la esperanza de vida y los asesinatos. Entonces la tarea que tenemos por delante es encontrar los valores de $\beta_0$ y $\beta_1$.
 
 ### Rectas
 
@@ -530,9 +539,9 @@ ggplot(data.frame(x = c(-1, 3)), aes(x)) +
 
 Vemos que:
 
-*Cuando $x=0$ y es igual a la ordenada al origen. La ordenada al origen indica cual es el valor de la variable Y cuando la variable X es igual a cero
+Cuando $x=0$ la variable Y es igual a la ordenada al origen. La ordenada al origen indica cual es el valor de la variable Y cuando la variable X es igual a cero
 
-*Cuando $x=1$, $y= 6-2.1=4$ . Cuando X aumento en 1 unidad Y se redujo en 2 unidades. La pendiente nos indica justamente eso: cuanto cambia la variable Y, cuando la variable X cambia en una unidad.
+Cuando $x=1$, $y= 6-2.1=4$ . Cuando X aumento en 1 unidad Y se redujo en 2 unidades. La pendiente nos indica justamente eso: cuanto cambia la variable Y, cuando la variable X cambia en una unidad.
 
 ### Parámetros del modelo
 
@@ -567,13 +576,13 @@ plot_grid(recta1,recta2,recta3)
 
 * La recta 2 atraviesa los puntos por la mitad. No se ajusta para nada a los datos
 
-* La recta 3 deja todos los puntos por encima de ella. Seria un mal modelo
+* La recta 3 deja todos los puntos por encima de ella. Sería un mal modelo
 
 * La recta 1 parece ser que se ajusta mucho mejor a la estructura de los datos
 
 Entonces, ya sabemos que puede haber valores de $\beta_0$ (ordenada al origen) y $\beta_1$ (pendiente) que son mejores que otros.
 
-Cuando creemos un modelo lineal, el modelo va a obtener los **MEJORES** valores $\beta_0$ y $\beta_1$. Son los MEJORES porque son los que producen la RECTA que MEJOR se AJUSTA a los DATOS. 
+Cuando creemos un modelo lineal, la regresión va a obtener los **MEJORES** valores $\beta_0$ y $\beta_1$. Son los MEJORES porque son los que producen la RECTA que MEJOR se AJUSTA a los DATOS. 
 
 ## Modelo en R
 
@@ -592,38 +601,41 @@ modelo_asesinatos
 
 Cuando creamos un modelo vamos a poder acceder a mucha informacion contenida en él. Podemos ver que cosas tiene dentro con `modelo_asesinatos$`
 
-### Interpretacion
+### Interpretación
 
 Recordemos que nuestro modelo era:
 
 $EsperanzaVida= \beta_0 + \beta_1 \cdot Asesinatos + \varepsilon$
 
-Y queriamos encontrar los valores de $\beta_0$ y $\beta_1$.
+Y queríamos encontrar los valores de $\beta_0$ y $\beta_1$.
 
-Si realizamos `modelo_asesinatos$coefficients` vamos a poder acceder a los valores de $\beta_0$ y $\beta_1$ estimados por la regresion simple:
+Si realizamos `modelo_asesinatos$coefficients` vamos a poder acceder a los valores de $\beta_0$ y $\beta_1$ estimados por la regresión simple:
 
 ```{r}
 modelo_asesinatos$coefficients
+
+beta_0 <- modelo_asesinatos$coefficients[[1]] # Guardamos el valor del intercepto
+beta_1 <- modelo_asesinatos$coefficients[[2]] # Guardamos el valor de la pendiente
 ```
 
 ¿Cómo interpretamos los coeficientes?
 
-* El intercepto nos indica que si no hay asesinatos la esperanza de vida en promedio para los estados es de 73 años
+* El intercepto nos indica que si no hay asesinatos, la esperanza de vida en promedio para los estados es de 73 años
 
-* La pendiente nos indica que cada asesinato adicional reduce la esperanza de vida en promedio para los estados en 0.3 años. Es decir, que más o menos, cada 3 homicidios la esperanza de vida promedio se reduce en 1 año.
+* La pendiente nos indica que cada asesinato adicional reduce la esperanza de vida en promedio en 0.3 años. Es decir, que más o menos, cada 3 homicidios la esperanza de vida promedio se reduce en 1 año.
 
 Veamos como luce nuestro modelo lineal gráficamente:
 
 ```{r}
 ggplot(estados, aes(x=Murder,y=life_exp)) +
   geom_point(size=2) +
-  geom_abline(intercept = 73, slope = -0.3, colour='forestgreen', size=1.5) +
+  geom_abline(intercept = beta_0, slope = beta_1, colour='forestgreen', size=1.5, alpha=0.6) +
   geom_vline(xintercept = 0) +
   labs(title='Modelo lineal', x='Asesinatos (Murder)', y='Life Exp (Experanza Vida)')+
   theme_bw()
 ```
 
-### Evaluacion del modelo
+### Evaluación del modelo
 
 Hasta ahora no sabemos que tan bueno es nuestro modelo para explicar la esperanza de vida.
 
@@ -645,7 +657,7 @@ En este caso:
 
 **R cuadrado**
 
-Es un valor que va entre 0 y 1, e indica que tan bueno es mi modelo en total para explicar mi variable Y. 
+Es un valor que va entre 0 y 1, e indica que tan bueno es mi modelo en su totalidad para explicar mi variable Y. 
 
 IMPORTANTE: podemos usar el **R cuadrado** para comparar modelos distintos entre sí
 
@@ -683,6 +695,23 @@ Notemos que:
 
 * El R cuadrado (Multiple R-squared) es igual a 0.12
 
-En conclusion, nuestro primer modelo tiene un R cuadrado mucho más alto que el segundo modelo. Por lo tanto, el primer modelo es mucho mejor para predecir la esperanza de vida de los estados de Estados Unidos que el segundo.
+En conclusión, nuestro primer modelo tiene un R cuadrado mucho más alto que el segundo modelo. Por lo tanto, el primer modelo es mucho mejor para predecir la esperanza de vida de los estados de Estados Unidos que el segundo.
 
+# Ejercicios de tarea
 
+  1) Realizar el gráfico de dispersión entre **Income** y **Illiteracy**, y entre **Income** y **hs_grad**
+
+  2) Calcular la covarianza y correlación entre **Income** y **Illiteracy**, y entre **Income** y **hs_grad**
+
+  3) 
+    a) Realizar un modelo lineal que explique  **Income** en función de **Illiteracy**
+  
+    b) Realizar un modelo lineal que explique  **Income** en función de **hs_grad**
+
+  4) Obtener los coefientes de los 2 modelos previos. Interpretarlos brevemente
+  
+  5) Obtener el R-cuadrado de los 2 modelos anteriores. Elegir el que mejor explique la variable **Income**
+
+**Bonus**
+
+  6) Graficar la recta de cada modelo sobre el diagrama de dispersión correspondiente
