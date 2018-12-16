@@ -20,24 +20,31 @@ Individual_t117 <- read.table("Fuentes/usu_individual_t117.txt",
 Regiones <- read.xlsx("Fuentes/Regiones.xlsx")
 Aglomerados <- read.xlsx("Fuentes/Aglomerados EPH.xlsx")
 
-
-Base<- Individual_t117 %>% 
+ggdata <- Individual_t117 %>% 
   left_join(Regiones) %>% 
-  left_join(Aglomerados)
+  filter(P21>0, !is.na(NIVEL_ED)) %>% 
+  mutate(NIVEL_ED = as.factor(NIVEL_ED),
+         CH04     = as.factor(CH04))
 
-#Para iterar sobre la variable región, no necesitamos recorrer todos los valores de la misma, sino por los **valores únicos**. Es decir, que vamos a querer realizar un loop que realizará un mismo procedimiento 6 veces. Para ello, utilizaremos la función **unique** que nos permite obtener un vector con los únicos valores que toma determinada variable.
-unique(Base$Region)
+unique(ggdata$Region)
 
-for(variable_itera in unique(Base$Region)){
+pdf(file = "Resultados/Graficos_Region.PDF")
+for(variable_itera in unique(ggdata$Region)){
   print(variable_itera)# No es necesario, permite ver por que Región estoy trabajando
   
-  temp <- Base %>% # Aquí filtro la base cuando Region toma el valor de "variable_itera"
-    filter(Region == variable_itera)
+  Base_Reg <- ggdata %>% # Aquí filtro la base cuando Region toma el valor de "variable_itera"
+    filter(Region == variable_itera) 
   
-  ##Temp es un dataframe que será "pisado" en cada iteración.
-  #La función assign me permite definir a un objeto utilizando como primer argumento el nombre deseado 
-  assign(variable_itera,temp)
+  Graf_Reg <- ggplot(Base_Reg, 
+                     aes(x= NIVEL_ED, y = P21, group = NIVEL_ED, fill = NIVEL_ED )) +
+    geom_boxplot()+
+    scale_y_continuous(limits = c(0, 40000))+
+    labs(title = paste0("Region ", variable_itera))+
+    facet_wrap(~ CH04, labeller = "label_both")
+  
+  print(Graf_Reg)
 }
+dev.off()
 
 # Estructuras Condicionales
 
@@ -56,55 +63,32 @@ resultado <- if_else(2+2==4, true = "Joya",false = "Error") #Versión dplyr
 ABC_123 <- data.frame(Letras = LETTERS[1:20],Num = 1:20)
 ABC_123 %>% 
   mutate(Mayor_o_Menor = ifelse(Num<=5,"Menor o igual que 5","Mayor que 5"))
+# Lubridate
+library(lubridate)
+fecha  <- "04/12/92 17:35:16"
+fecha
 
-#Ejercicio práctico combinando Loops y estructuras condicionales
-#Antes de comenzar el Loop, recodifico las variables 
-Base_para_loop <- Base %>% 
-  mutate(CH04 = case_when(CH04 == 1 ~ "Varon",
-                          CH04 == 2 ~ "Mujer"),
-         CAT_OCUP = case_when(CAT_OCUP == 1  ~ "Patron",
-                              CAT_OCUP == 2  ~ "Cuenta Propia",
-                              CAT_OCUP == 3  ~ "Asalariados",
-                              CAT_OCUP == 4  ~ "TFSR"))
+fecha  <- dmy_hms(fecha)
+fecha
 
+fecha2  <- "Dec-92"
+fecha2 <- parse_date_time(fecha2, orders = 'my')
+fecha2
 
-for(aglom_itera in unique(Base_para_loop$AGLOMERADO)){
-  
-  #Filtro la base restringiendola a un aglomerado
-  Base_itera_xaglom <- Base_para_loop %>%
-    filter(AGLOMERADO == aglom_itera)
-  
-  #Exijo los procedimientos a continuación sólo se realicen para aglomerados con más de 500.000 habitantes
-  
-  if(unique(Base_itera_xaglom$MAS_500)=="S"){
-    
-    Base_grafico  <- Base_itera_xaglom %>% 
-      filter(CAT_OCUP != 0) %>% 
-      group_by(Nom_Aglo,CAT_OCUP,CH04) %>% 
-      summarise(Cantidad = sum(PONDERA,na.rm = TRUE)) %>% 
-      group_by(CAT_OCUP) %>%     
-      mutate(Porcentaje = Cantidad/sum(Cantidad))
-    
-    Grafico <- ggplot(Base_grafico, aes(CAT_OCUP, Porcentaje, fill = CH04, 
-                                        label = sprintf("%1.1f%%", 100*Porcentaje)))+
-      geom_col(position = "stack", alpha=0.6) + 
-      geom_text(position = position_stack(vjust = 0.5), size=3)+
-      labs(x="",y="Porcentaje",
-           title = unique(Base_grafico$Nom_Aglo))+
-      theme_minimal()+
-      scale_y_continuous()+
-      theme(legend.position = "bottom",
-            legend.title=element_blank(),
-            axis.text.x = element_text(angle=25))    
-    
-    Grafico 
-    
-    ggsave(paste0("Resultados/Aglomerado ",aglom_itera,".PNG"))
-  }
-}
+## Extracción de información
 
-#A continuación se muestra el último de los gráficos relizados por el loop. En la carpeta de __Resultados__ del curso, podran observarse cada uno de los gráficos correspondientes a los algomerados de más de 500.000 habitantes. 
-Grafico
+year(fecha) # Obtener el año
+month(fecha) #Obtener el mes
+day(fecha) # Obtener el día
+wday(fecha, label = TRUE) #Obtener el nombre del día
+hour(fecha) #Obtener la hora
+
+## Operaciones
+# Sumo dos días 
+fecha + days(2)
+# Resto 1 semana y dos horas
+fecha - (weeks(1) + hours(2))
+
 
 # Funciones del Usuario
 
