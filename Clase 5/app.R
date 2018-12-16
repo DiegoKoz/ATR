@@ -1,8 +1,13 @@
+library(tidyverse)
 library(shiny)
 library(plotly)
 library(gapminder)
+library(ggthemes)
 
 data <- gapminder
+
+data <- data %>% 
+  gather(., var, value, 4:6)
 
 ui <- shinyUI(fluidPage(
   
@@ -11,42 +16,49 @@ ui <- shinyUI(fluidPage(
   
   sidebarPanel(
     h3("Esperanza de vida"),
-    # Select Justices name here
+    # Elegir pais
     selectizeInput("name",
                    label = "Paises de interes",
                    choices = unique(data$country),
                    multiple = T,
                    options = list(maxItems = 5, placeholder = 'eliga un pais'),
                    selected = "Argentina"),
-    # Term plot
-    plotOutput("termPlot", height = 200)
-    # helpText("Data: Bailey, Michael, Anton  Strezhnev and Erik Voeten. Forthcoming.  'Estimating Dynamic State Preferences from United Nations Voting Data.' Journal of Conflict Resolution. ")
-  ),
+
+    # Elegir variables
+    selectizeInput("var",
+                   label = "Elegir variables",
+                   choices = unique(data$var),
+                   multiple = T,
+                   options = list(placeholder = 'eliga una variable'),
+                   selected = "lifeExp")
+   ),
   
-  # Show a plot of the generated distribution
+  # mostrar gráfico
   mainPanel(
-    plotlyOutput("trendPlot")
+    plotlyOutput("plot")
   )
 )
 )
 
-
 server <- shinyServer(function(input, output, session) {
   
-  output$trendPlot <- renderPlotly({
+  output$plot <- renderPlotly({
     
     if (length(input$name) == 0) {
       print("por favor eliga al menos un país")
+    } 
+    if (length(input$var) == 0) {
+      print("por favor eliga al menos una variable")
     } else {
-      df_trend <- data[data$country == input$name, ]
-      ggplot(df_trend) +
-        geom_line(aes(x = year, y = lifeExp, by = country, color = country)) +
-        labs(x = "Año", y = "Esperanza de vida", title = "Esperanza de vida por año") +
-        scale_colour_hue("clarity", l = 70, c = 150) + ggthemes::theme_few()
+      df_trend <- data[data$country == input$name & data$var %in% input$var, ]
+      ggplot(df_trend, aes(label = var)) +
+        geom_line(aes(x = year, y = value, by = country, color = country)) +
+        labs(x = "Año", y = "var", title = "variables por país") +
+        facet_grid(var~., scales = "free")+
+        scale_colour_hue("pais", l = 70, c = 150) + 
+        theme_few()
     }
-    
   })
 })
-
 
 shinyApp(ui, server)
