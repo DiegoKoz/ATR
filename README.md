@@ -27,6 +27,10 @@
 
 #### Correlación + Modelo lineal
 
+- [Notebook](Clase 4/clase4_MCO.nb.html)
+- [Script](Clase 4/clase4_MCO.R)
+- [Rmarkdown](Clase 4/clase4_MCO.Rmd)
+
 ### Clase 5:
 
 #### R intermedo  + Rmarkdown + Shiny Apps
